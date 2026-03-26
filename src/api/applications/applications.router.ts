@@ -6,14 +6,26 @@ import { validateRequest } from "../../middlewares/validation.middleware.js";
 
 export const router = Router();
 
-// Protect all routes in this router
 router.use(protect);
 
-router.route("/")
-    .get(applicationsController.getApplications)
-    .post(validateRequest(applicationsSchemas.createApplication), applicationsController.createApplication);
+router.get(
+    "/document-counts",
+    applicationsController.getApplicationDocumentCountsHandler
+);
 
-router.route("/:id")
+router
+    .route("/")
+    .get(applicationsController.getApplications)
+    .post(
+        validateRequest(applicationsSchemas.createApplication),
+        applicationsController.createApplication
+    );
+
+router
+    .route("/:id")
     .get(applicationsController.getApplicationDetails)
-    .patch(validateRequest(applicationsSchemas.updateApplication), applicationsController.updateApplication)
+    .patch(
+        validateRequest(applicationsSchemas.updateApplication),
+        applicationsController.updateApplication
+    )
     .delete(applicationsController.deleteApplication);

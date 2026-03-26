@@ -1,6 +1,7 @@
 import type { Response } from "express";
 import { asyncHandler } from "../../middlewares/error.middleware.js";
 import * as ApplicationsService from "./applications.service.js";
+import { getApplicationsDocumentCounts } from "../application-documents/application-documents.service.js";
 import { ResponseHandler } from "../../utils/response.js";
 import { getPagination } from "../../utils/pages.js";
 import { HttpStatus } from "../../utils/response.js";
@@ -10,13 +11,18 @@ import { getApplicationsQuerySchema } from "./applications.schemas.js";
 export const getApplications = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
         const queryResult = getApplicationsQuerySchema.safeParse(req.query);
-        const parsedQuery = queryResult.success ? queryResult.data : {
-            page: 1,
-            limit: 20,
-        };
+        const parsedQuery = queryResult.success
+            ? queryResult.data
+            : {
+                  page: 1,
+                  limit: 20
+              };
 
         const { page, limit } = getPagination(
-            { page: String(parsedQuery.page), limit: String(parsedQuery.limit) },
+            {
+                page: String(parsedQuery.page),
+                limit: String(parsedQuery.limit)
+            },
             20
         );
 
@@ -32,7 +38,7 @@ export const getApplications = asyncHandler(
             salary_min: parsedQuery.salary_min,
             salary_max: parsedQuery.salary_max,
             sort: parsedQuery.sort,
-            order: parsedQuery.order,
+            order: parsedQuery.order
         });
 
         ResponseHandler.paginated(
@@ -111,6 +117,34 @@ export const deleteApplication = asyncHandler(
             "Application deleted successfully",
             HttpStatus.OK,
             result,
+            req.originalUrl
+        );
+    }
+);
+
+export const getApplicationDocumentCountsHandler = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+        const applicationIds = req.query.ids as string;
+
+        if (!applicationIds) {
+            ResponseHandler.success(
+                res,
+                "Document counts retrieved successfully",
+                HttpStatus.OK,
+                {},
+                req.originalUrl
+            );
+            return;
+        }
+
+        const ids = applicationIds.split(",");
+        const counts = await getApplicationsDocumentCounts(req.user.id, ids);
+
+        ResponseHandler.success(
+            res,
+            "Document counts retrieved successfully",
+            HttpStatus.OK,
+            counts,
             req.originalUrl
         );
     }

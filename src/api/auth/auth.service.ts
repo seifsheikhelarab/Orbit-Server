@@ -29,9 +29,9 @@ export class AuthService {
             });
             return result;
         } catch (error: unknown) {
-            const err = error as { 
-                status?: number; 
-                code?: string; 
+            const err = error as {
+                status?: number;
+                code?: string;
                 message?: string;
             };
             if (
@@ -70,9 +70,9 @@ export class AuthService {
             });
             return result;
         } catch (error: unknown) {
-            const err = error as { 
-                status?: number; 
-                code?: string; 
+            const err = error as {
+                status?: number;
+                code?: string;
                 message?: string;
             };
             if (

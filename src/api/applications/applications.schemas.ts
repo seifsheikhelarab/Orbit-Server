@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-const applicationStatusEnum = z.enum(["SAVED", "APPLIED", "PHONE_SCREEN", "INTERVIEW", "OFFER", "CLOSED"]);
+const applicationStatusEnum = z.enum([
+    "SAVED",
+    "APPLIED",
+    "PHONE_SCREEN",
+    "INTERVIEW",
+    "OFFER",
+    "CLOSED"
+]);
 
 export const createApplication = z.object({
     company: z.string().min(1, "Company name is required").max(200, "Too long"),
@@ -11,13 +18,20 @@ export const createApplication = z.object({
     salaryMin: z.number().nonnegative("Salary must be non-negative").optional(),
     salaryMax: z.number().nonnegative("Salary must be non-negative").optional(),
     appliedDate: z.coerce.date().optional(),
-    notes: z.string().optional().or(z.literal("")),
+    notes: z.string().optional().or(z.literal(""))
 });
 
 export const updateApplication = createApplication.partial();
 
-export const applicationStatusValues = ["SAVED", "APPLIED", "PHONE_SCREEN", "INTERVIEW", "OFFER", "CLOSED"] as const;
-export type ApplicationStatus = typeof applicationStatusValues[number];
+export const applicationStatusValues = [
+    "SAVED",
+    "APPLIED",
+    "PHONE_SCREEN",
+    "INTERVIEW",
+    "OFFER",
+    "CLOSED"
+] as const;
+export type ApplicationStatus = (typeof applicationStatusValues)[number];
 
 export const getApplicationsQuerySchema = z.object({
     page: z.coerce.number().int().positive().default(1),
@@ -29,8 +43,17 @@ export const getApplicationsQuerySchema = z.object({
     applied_to: z.string().optional(),
     salary_min: z.coerce.number().int().nonnegative().optional(),
     salary_max: z.coerce.number().int().nonnegative().optional(),
-    sort: z.enum(["company", "jobTitle", "applicationStatus", "appliedDate", "createdAt", "updatedAt"]).optional(),
-    order: z.enum(["asc", "desc"]).optional(),
+    sort: z
+        .enum([
+            "company",
+            "jobTitle",
+            "applicationStatus",
+            "appliedDate",
+            "createdAt",
+            "updatedAt"
+        ])
+        .optional(),
+    order: z.enum(["asc", "desc"]).optional()
 });
 
 export type GetApplicationsQuery = z.infer<typeof getApplicationsQuerySchema>;

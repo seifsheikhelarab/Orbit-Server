@@ -4,10 +4,16 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./utils/auth.js";
 import logger from "./utils/logger.js";
 import prisma from "./utils/prisma.js";
+import { getRedisClient, disconnectRedis } from "./utils/redis.js";
 import cors from "cors";
 import helmet from "helmet";
-import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
+import {
+    errorHandler,
+    notFoundHandler
+} from "./middlewares/error.middleware.js";
 import apiRouter from "./api/index.js";
+import { apiReference } from "@scalar/express-api-reference";
+import { generateOpenAPISpec } from "./utils/openapi.js";
 
 /**
  * Default Express app
@@ -32,7 +38,31 @@ app.use(
         credentials: true
     })
 );
-app.use(helmet());
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                "script-src": [
+                    "'self'",
+                    "'unsafe-inline'",
+                    "https://cdn.jsdelivr.net"
+                ],
+                "script-src-elem": [
+                    "'self'",
+                    "'unsafe-inline'",
+                    "https://cdn.jsdelivr.net"
+                ]
+            }
+        }
+    })
+);
+
+app.use(
+    "/scalar",
+    apiReference({
+        content: generateOpenAPISpec()
+    })
+);
 
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
@@ -50,21 +80,27 @@ app.use(errorHandler);
  */
 export async function startServer(): Promise<void> {
     try {
-        // Test database connection
         await prisma.$queryRaw`SELECT 1`;
         logger.info("[Init] Database connected successfully");
+
+        try {
+            getRedisClient();
+            logger.info("[Init] Redis connected successfully");
+        } catch (redisErr) {
+            logger.warn(
+                `Redis connection failed (caching disabled): ${redisErr}`
+            );
+        }
 
         const server = app.listen(port, async () => {
             logger.info(`[Init] Server running on port ${port}`);
         });
 
-        /**
-         * Graceful Shutdown
-         */
         process.on("SIGTERM", async () => {
             logger.info("SIGTERM received, shutting down gracefully...");
             server.close(async () => {
                 await prisma.$disconnect();
+                await disconnectRedis();
                 logger.info("Server closed");
                 process.exit(0);
             });
@@ -74,6 +110,7 @@ export async function startServer(): Promise<void> {
             logger.info("SIGINT received, shutting down gracefully...");
             server.close(async () => {
                 await prisma.$disconnect();
+                await disconnectRedis();
                 logger.info("Server closed");
                 process.exit(0);
             });

@@ -18,7 +18,7 @@ describe("Applications API", () => {
         expect(res.status).toBe(401);
     });
 
-    // To add more thorough tests, we would need a proper test setup with DB seeding 
-    // and user authentication, which might be out of scope for a quick fix 
+    // To add more thorough tests, we would need a proper test setup with DB seeding
+    // and user authentication, which might be out of scope for a quick fix
     // unless a test utility is fully available.
 });

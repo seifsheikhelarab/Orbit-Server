@@ -1,10 +1,8 @@
-import { type Request, type Response, type NextFunction } from 'express';
-import { auth } from '../utils/auth.js';
-import {
-    AuthenticationError
-} from '../utils/response.js';
-import { asyncHandler } from './error.middleware.js';
-import { fromNodeHeaders } from 'better-auth/node';
+import { type Request, type Response, type NextFunction } from "express";
+import { auth } from "../utils/auth.js";
+import { AuthenticationError } from "../utils/response.js";
+import { asyncHandler } from "./error.middleware.js";
+import { fromNodeHeaders } from "better-auth/node";
 
 export type AuthenticatedRequest = Request & {
     user: {
@@ -36,7 +34,7 @@ export const protect = asyncHandler<AuthenticatedRequest>(
 
         if (!session) {
             throw new AuthenticationError(
-                'Authentication required. Please log in.'
+                "Authentication required. Please log in."
             );
         }
 

@@ -1,12 +1,12 @@
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from "express";
 import {
     ResponseHandler,
     AppError,
     ErrorCode,
     HttpStatus
-} from '../utils/response.js';
-import logger from '../utils/logger.js';
-import type { ZodError } from 'zod';
+} from "../utils/response.js";
+import logger from "../utils/logger.js";
+import type { ZodError } from "zod";
 
 /**
  * Format and send a consistent error response for failed requests.
@@ -42,13 +42,13 @@ export const errorHandler = (
     }
 
     // Handle Zod validation errors
-    if (err.name === 'ZodError') {
+    if (err.name === "ZodError") {
         const zodErr = err as ZodError;
         const issues = zodErr.issues;
 
         const details: Record<string, string> = issues.reduce(
             (acc: Record<string, string>, issue) => {
-                const errorPath = issue.path.join('.');
+                const errorPath = issue.path.join(".");
                 acc[errorPath] = issue.message;
                 return acc;
             },
@@ -58,7 +58,7 @@ export const errorHandler = (
         logger.warn(`Validation error - Path: ${path}`);
         return ResponseHandler.error(
             res,
-            'Validation failed',
+            "Validation failed",
             ErrorCode.VALIDATION_ERROR,
             HttpStatus.BAD_REQUEST,
             path,
@@ -70,8 +70,8 @@ export const errorHandler = (
     logger.error(`Unhandled error: ${err.message} - Stack: ${err.stack}`);
     return ResponseHandler.error(
         res,
-        process.env.NODE_ENV === 'production'
-            ? 'An error occurred'
+        process.env.NODE_ENV === "production"
+            ? "An error occurred"
             : err.message,
         ErrorCode.SERVER_ERROR,
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -94,7 +94,7 @@ export const notFoundHandler = (req: Request, res: Response) => {
         HttpStatus.NOT_FOUND,
         path
     );
-    logger.error(`path ${path} not found`)
+    logger.error(`path ${path} not found`);
 };
 
 /**

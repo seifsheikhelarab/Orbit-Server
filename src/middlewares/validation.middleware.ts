@@ -1,6 +1,6 @@
-import type { Request, Response, NextFunction } from 'express';
-import { errorHandler } from './error.middleware.js';
-import type { z } from 'better-auth';
+import type { Request, Response, NextFunction } from "express";
+import { errorHandler } from "./error.middleware.js";
+import type { z } from "better-auth";
 
 /**
  * Create middleware that validates request input against a Zod schema.
@@ -11,16 +11,16 @@ import type { z } from 'better-auth';
  */
 export const validateRequest = (
     schema: z.ZodType,
-    source: 'body' | 'query' | 'params' = 'body'
+    source: "body" | "query" | "params" = "body"
 ) => {
     return (req: Request, res: Response, next: NextFunction) => {
         try {
             const data =
-                source === 'body'
+                source === "body"
                     ? req.body
-                    : source === 'query'
-                        ? req.query
-                        : req.params;
+                    : source === "query"
+                      ? req.query
+                      : req.params;
 
             const result = schema.safeParse(data);
 
@@ -30,9 +30,9 @@ export const validateRequest = (
             }
 
             // Replace the data with validated and parsed data
-            if (source === 'body') {
+            if (source === "body") {
                 req.body = result.data;
-            } else if (source === 'query') {
+            } else if (source === "query") {
                 const query = req.query;
                 for (const key in query) {
                     delete query[key];
