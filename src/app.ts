@@ -58,7 +58,7 @@ app.use(
 );
 
 app.use(
-    "/scalar",
+    "/docs",
     apiReference({
         content: generateOpenAPISpec()
     })
@@ -93,7 +93,8 @@ export async function startServer(): Promise<void> {
         }
 
         const server = app.listen(port, async () => {
-            logger.info(`[Init] Server running on port ${port}`);
+            logger.info(`[Init] Server running on http://localhost:${port}`);
+            logger.info(`[Init] Scalar docs on http://localhost:${port}/docs`)
         });
 
         process.on("SIGTERM", async () => {
