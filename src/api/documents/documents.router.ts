@@ -9,7 +9,8 @@ import {
     deleteDocument,
     uploadNewVersion,
     downloadVersion,
-    previewVersion
+    previewVersion,
+    importFromGoogleDrive
 } from "./documents.controller.js";
 import { validateRequest } from "../../middlewares/validation.middleware.js";
 import {
@@ -30,6 +31,11 @@ router
         validateRequest(createDocumentSchema),
         createDocument
     );
+
+router.post(
+    "/import/google-drive",
+    importFromGoogleDrive
+);
 
 router
     .route("/:id")

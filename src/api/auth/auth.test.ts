@@ -1,39 +1,39 @@
-import { afterEach, describe, it } from "bun:test";
+import { beforeAll, describe, expect, it } from "bun:test";
 import request from "supertest";
 import app from "../../app.js";
 
+const TEST_USER_EMAIL = "test@example.com";
+const TEST_USER_PASSWORD = "password123";
+const TEST_USER_NAME = "Test User";
+
 describe("POST /login", () => {
-    it("returns 200", (done) => {
-        request(app)
-            .post("/api/v1/auth/login")
+    beforeAll(async () => {
+        await request(app)
+            .post("/api/v1/auth/register")
             .send({
-                email: "seofiasf@gmail.com",
-                password: "password123"
-            })
-            .expect("Content-Type", /json/)
-            .expect(200)
-            .end(function (err) {
-                if (err) return done(err);
-                return done();
+                name: TEST_USER_NAME,
+                email: TEST_USER_EMAIL,
+                password: TEST_USER_PASSWORD
             });
     });
 
-    it("returns an error", (done) => {
-        request(app)
+    it("returns 200 with valid credentials", async () => {
+        const res = await request(app)
             .post("/api/v1/auth/login")
             .send({
-                email: "df@gmail.com",
-                password: "password123"
-            })
-            .expect("Content-Type", /json/)
-            .expect(401)
-            .end(function (err) {
-                if (err) return done(err);
-                return done();
+                email: TEST_USER_EMAIL,
+                password: TEST_USER_PASSWORD
             });
+        expect(res.status).toBe(200);
     });
-});
 
-afterEach(() => {
-    request(app).post("/api/v1/auth/logout");
+    it("returns 401 with invalid credentials", async () => {
+        const res = await request(app)
+            .post("/api/v1/auth/login")
+            .send({
+                email: "nonexistent@example.com",
+                password: "wrongpassword"
+            });
+        expect(res.status).toBe(401);
+    });
 });

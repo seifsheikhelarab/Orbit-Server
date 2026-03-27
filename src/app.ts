@@ -14,6 +14,7 @@ import {
 import apiRouter from "./api/index.js";
 import { apiReference } from "@scalar/express-api-reference";
 import { generateOpenAPISpec } from "./utils/openapi.js";
+import { initJobs } from "./jobs/index.js";
 
 /**
  * Default Express app
@@ -94,7 +95,8 @@ export async function startServer(): Promise<void> {
 
         const server = app.listen(port, async () => {
             logger.info(`[Init] Server running on http://localhost:${port}`);
-            logger.info(`[Init] Scalar docs on http://localhost:${port}/docs`)
+            logger.info(`[Init] Scalar docs on http://localhost:${port}/docs`);
+            initJobs();
         });
 
         process.on("SIGTERM", async () => {

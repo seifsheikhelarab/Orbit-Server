@@ -18,10 +18,15 @@ export const createApplication = z.object({
     salaryMin: z.number().nonnegative("Salary must be non-negative").optional(),
     salaryMax: z.number().nonnegative("Salary must be non-negative").optional(),
     appliedDate: z.coerce.date().optional(),
-    notes: z.string().optional().or(z.literal(""))
+    notes: z.string().optional().or(z.literal("")),
+    followUpDate: z.coerce.date().optional(),
+    followUpNote: z.string().optional().or(z.literal("")),
+    source: z.string().max(100).optional().or(z.literal(""))
 });
 
 export const updateApplication = createApplication.partial();
+
+export const clearReminder = z.object({});
 
 export const applicationStatusValues = [
     "SAVED",

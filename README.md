@@ -46,14 +46,14 @@ The server runs at `http://localhost:3000`
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `bun run src/index.ts` | Start production server |
-| `bun run --watch src/index.ts` | Start with hot reload |
-| `bun test` | Run tests |
-| `bun run lint` | Lint with auto-fix |
-| `bun run format` | Format with Prettier |
-| `bun run build` | Type-check with tsc |
+| Command                        | Description             |
+| ------------------------------ | ----------------------- |
+| `bun run src/index.ts`         | Start production server |
+| `bun run --watch src/index.ts` | Start with hot reload   |
+| `bun test`                     | Run tests               |
+| `bun run lint`                 | Lint with auto-fix      |
+| `bun run format`               | Format with Prettier    |
+| `bun run build`                | Type-check with tsc     |
 
 ## API Endpoints
 

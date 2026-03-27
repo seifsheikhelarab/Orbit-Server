@@ -237,3 +237,32 @@ export const previewVersion = asyncHandler(
         res.send(buffer);
     }
 );
+
+export const importFromGoogleDrive = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+        const { fileId, accessToken, name, type } = req.body;
+
+        if (!fileId || !accessToken || !name || !type) {
+            return ResponseHandler.error(
+                res,
+                "Missing required fields: fileId, accessToken, name, type",
+                ErrorCode.VALIDATION_ERROR,
+                HttpStatus.BAD_REQUEST,
+                req.originalUrl
+            );
+        }
+
+        const result = await DocumentsService.importFromGoogleDrive(
+            req.user.id,
+            { fileId, accessToken, name, type }
+        );
+
+        ResponseHandler.success(
+            res,
+            "Document imported successfully",
+            HttpStatus.CREATED,
+            result,
+            req.originalUrl
+        );
+    }
+);

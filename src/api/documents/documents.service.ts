@@ -437,16 +437,103 @@ export async function getDocumentVersionBuffer(
     }
 
     const storageService = getStorageService();
-    const stream = await storageService.getStream(version.storageKey);
-
-    const chunks: Buffer[] = [];
-    for await (const chunk of stream) {
-        chunks.push(Buffer.from(chunk));
+    
+    let buffer: Buffer;
+    try {
+        const stream = await storageService.getStream(version.storageKey);
+        const chunks: Buffer[] = [];
+        for await (const chunk of stream) {
+            chunks.push(Buffer.from(chunk));
+        }
+        buffer = Buffer.concat(chunks);
+    } catch (error) {
+        throw new AppError(
+            "Unable to preview document - file not found",
+            HttpStatus.NOT_FOUND,
+            "NOT_FOUND"
+        );
     }
-    const buffer = Buffer.concat(chunks);
 
     return {
         buffer,
         mimeType: version.mimeType
     };
+}
+
+const ALLOWED_GOOGLE_DRIVE_MIMETYPES = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+];
+
+export async function importFromGoogleDrive(
+    userId: string,
+    data: {
+        fileId: string;
+        accessToken: string;
+        name: string;
+        type: DocumentType;
+    }
+): Promise<DocumentWithVersions> {
+    const validExtension = ALLOWED_GOOGLE_DRIVE_MIMETYPES.some(
+        (t) => t.split("/")[1] && data.name.toLowerCase().endsWith(t.split("/")[1]!)
+    );
+    if (!validExtension) {
+        throw new AppError(
+            "Only PDF and DOCX files can be imported from Google Drive",
+            HttpStatus.BAD_REQUEST,
+            "INVALID_FILE_TYPE"
+        );
+    }
+
+    const { downloadFromGoogleDrive } = await import("../../utils/googleDrive.js");
+    
+    const { buffer, filename, mimeType } = await downloadFromGoogleDrive(
+        data.accessToken,
+        data.fileId
+    );
+
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    if (buffer.length > MAX_FILE_SIZE) {
+        throw new AppError(
+            "File size exceeds 10MB limit",
+            HttpStatus.BAD_REQUEST,
+            "FILE_TOO_LARGE"
+        );
+    }
+
+    const tempDocId = `gdrive_${Date.now()}`;
+    const storageKey = generateStorageKey(userId, tempDocId, 1, filename);
+    const storageService = getStorageService();
+    await storageService.upload(buffer, storageKey, mimeType);
+
+    const document = await prisma.document.create({
+        data: {
+            userId,
+            name: data.name,
+            type: data.type,
+            versions: {
+                create: {
+                    versionNumber: 1,
+                    originalFilename: filename,
+                    storageKey,
+                    mimeType,
+                    fileSizeBytes: buffer.length,
+                    source: "GOOGLE_DRIVE"
+                }
+            }
+        },
+        include: {
+            versions: {
+                orderBy: { versionNumber: "desc" }
+            }
+        }
+    });
+
+    await prisma.document.update({
+        where: { id: document.id },
+        data: { activeVersionId: document.versions[0]?.id }
+    });
+
+    return getDocumentById(userId, document.id);
 }

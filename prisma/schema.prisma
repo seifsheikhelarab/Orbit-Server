@@ -8,18 +8,24 @@ datasource db {
 }
 
 model User {
-  id              String           @id @default(nanoid())
-  email           String           @unique
-  name            String
-  password        String?
-  emailVerified   Boolean          @default(false)
-  image           String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  sessions        Session[]
-  accounts        Account[]
-  jobApplications JobApplication[]
-  documents       Document[]
+  id                        String           @id @default(nanoid())
+  email                     String           @unique
+  name                      String
+  password                  String?
+  emailVerified             Boolean          @default(false)
+  image                     String?
+  googleId                  String?          @unique
+  avatarUrl                 String?
+  timezone                  String           @default("UTC")
+  emailRemindersEnabled     Boolean          @default(true)
+  inAppNotificationsEnabled Boolean          @default(true)
+  createdAt                 DateTime         @default(now())
+  updatedAt                 DateTime         @updatedAt
+  sessions                  Session[]
+  accounts                  Account[]
+  jobApplications           JobApplication[]
+  documents                 Document[]
+  notifications             Notification[]
 
   @@map("user")
 }
@@ -136,13 +142,22 @@ model JobApplication {
   salaryMax         Int?
   appliedDate       DateTime?
   notes             String?
+  followUpDate      DateTime?
+  followUpNote      String?
+  source            String?
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
 
   user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   applicationDocuments ApplicationDocument[] @relation("ApplicationDocumentsRelation")
+  notifications      Notification[]
+  reminderJobs      ReminderJob[]
+  statusHistory      StatusHistory[]
+  contacts           Contact[]
+  interviewRounds    InterviewRound[]
 
   @@index([userId])
+  @@index([followUpDate])
 }
 
 enum documentType {
@@ -176,6 +191,7 @@ model DocumentVersion {
   storageKey       String   @db.Text
   mimeType          String   @db.VarChar(100)
   fileSizeBytes     Int
+  source            String   @default("LOCAL")
   createdAt         DateTime @default(now())
 
   document              Document              @relation("DocumentVersions", fields: [documentId], references: [id], onDelete: Cascade)
@@ -197,4 +213,101 @@ model ApplicationDocument {
   @@unique([applicationId, documentVersionId])
   @@index([applicationId])
   @@index([documentVersionId])
+}
+
+enum notificationType {
+  FOLLOW_UP_DUE
+  FOLLOW_UP_OVERDUE
+}
+
+model Notification {
+  id             String            @id @default(nanoid())
+  userId         String
+  applicationId String?
+  type           notificationType
+  title          String            @db.VarChar(255)
+  body           String?
+  readAt         DateTime?
+  actionedAt     DateTime?
+  createdAt      DateTime          @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application  JobApplication? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([applicationId])
+}
+
+model ReminderJob {
+  id             String      @id @default(nanoid())
+  applicationId  String
+  scheduledDate DateTime    @db.Date
+  sentAt         DateTime?
+  createdAt      DateTime    @default(now())
+
+  application JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, scheduledDate])
+  @@index([applicationId])
+}
+
+model StatusHistory {
+  id            String                @id @default(nanoid())
+  applicationId String
+  fromStatus    applicationStatusType?
+  toStatus      applicationStatusType
+  note          String?
+  changedAt     DateTime              @default(now())
+
+  application JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("status_history")
+}
+
+model Contact {
+  id            String   @id @default(nanoid())
+  applicationId String
+  name          String   @db.VarChar(200)
+  title         String?  @db.VarChar(200)
+  email         String?  @db.VarChar(255)
+  phone         String?  @db.VarChar(50)
+  linkedinUrl   String?  @db.Text
+  createdAt     DateTime @default(now())
+
+  application JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("contact")
+}
+
+enum interviewRoundType {
+  PHONE_SCREEN
+  TECHNICAL
+  SYSTEM_DESIGN
+  BEHAVIORAL
+  FINAL
+  OTHER
+}
+
+enum interviewOutcome {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+model InterviewRound {
+  id             String            @id @default(nanoid())
+  applicationId  String
+  roundType      interviewRoundType
+  scheduledAt    DateTime?
+  interviewerName String?           @db.VarChar(200)
+  notes          String?
+  outcome        interviewOutcome?
+  createdAt      DateTime          @default(now())
+
+  application JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("interview_round")
 }
