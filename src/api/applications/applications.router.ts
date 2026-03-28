@@ -28,6 +28,8 @@ router
     .patch(applicationsController.bulkUpdateApplications)
     .delete(applicationsController.bulkDeleteApplications);
 
+router.get("/ids", applicationsController.getAllApplicationIds);
+
 router
     .route("/:id")
     .get(applicationsController.getApplicationDetails)

@@ -167,7 +167,7 @@ async function main() {
                             note: faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.4 })
                         }
                     });
-                    currentStatus = toStatus;
+                    currentStatus = toStatus as string;
                 }
                 if (toStatus === status) break;
             }

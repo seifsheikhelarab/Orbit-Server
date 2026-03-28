@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import "dotenv/config";
 import { bearer } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./prisma";
@@ -15,11 +16,15 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true
     },
-    trustedOrigins: ["http://localhost:5173"],
+    trustedOrigins: [
+        "http://localhost:5173",
+        "http://localhost:3000"
+    ],
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            redirectURL: process.env.GOOGLE_REDIRECT_URL || "http://localhost:5173/api/auth/callback/google"
         }
     },
     plugins: [bearer()]

@@ -1,14 +1,20 @@
 import { getRedisClient } from "./redis.js";
+import logger from "./logger.js";
 
 const DEFAULT_TTL = 300;
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
-    const redis = getRedisClient();
-    const value = await redis.get(key);
-    if (value === null) {
+    try {
+        const redis = getRedisClient();
+        const value = await redis.get(key);
+        if (value === null) {
+            return null;
+        }
+        return JSON.parse(value) as T;
+    } catch (error) {
+        logger.warn(`[Cache] Failed to get key ${key}: ${error}`);
         return null;
     }
-    return JSON.parse(value) as T;
 }
 
 export async function cacheSet(
@@ -16,21 +22,33 @@ export async function cacheSet(
     value: unknown,
     ttl: number = DEFAULT_TTL
 ): Promise<void> {
-    const redis = getRedisClient();
-    await redis.set(key, JSON.stringify(value));
-    await redis.expire(key, ttl);
+    try {
+        const redis = getRedisClient();
+        await redis.set(key, JSON.stringify(value));
+        await redis.expire(key, ttl);
+    } catch (error) {
+        logger.warn(`[Cache] Failed to set key ${key}: ${error}`);
+    }
 }
 
 export async function cacheDelete(key: string): Promise<void> {
-    const redis = getRedisClient();
-    await redis.del(key);
+    try {
+        const redis = getRedisClient();
+        await redis.del(key);
+    } catch (error) {
+        logger.warn(`[Cache] Failed to delete key ${key}: ${error}`);
+    }
 }
 
 export async function cacheDeletePattern(pattern: string): Promise<void> {
-    const redis = getRedisClient();
-    const keys = await redis.keys(pattern);
-    if (keys.length > 0) {
-        await redis.del(...keys);
+    try {
+        const redis = getRedisClient();
+        const keys = await redis.keys(pattern);
+        if (keys.length > 0) {
+            await redis.del(...keys);
+        }
+    } catch (error) {
+        logger.warn(`[Cache] Failed to delete keys matching ${pattern}: ${error}`);
     }
 }
 

@@ -260,6 +260,30 @@ export const bulkDeleteApplications = asyncHandler(
     }
 );
 
+export const getAllApplicationIds = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+        const queryResult = getApplicationsQuerySchema.safeParse(req.query);
+        const parsedQuery = queryResult.success
+            ? queryResult.data
+            : {};
+
+        const ids = await ApplicationsService.getAllApplicationIds({
+            userId: req.user.id,
+            page: 1,
+            limit: 10000,
+            ...parsedQuery
+        });
+
+        ResponseHandler.success(
+            res,
+            "Application IDs retrieved successfully",
+            HttpStatus.OK,
+            { ids },
+            req.originalUrl
+        );
+    }
+);
+
 export const getStatusHistory = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
         const result = await ApplicationsService.getStatusHistory(

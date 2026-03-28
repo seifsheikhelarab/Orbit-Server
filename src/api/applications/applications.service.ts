@@ -174,6 +174,71 @@ export async function getApplications(params: GetApplicationsParams) {
     }
 }
 
+export async function getAllApplicationIds(params: GetApplicationsParams) {
+    const where: Prisma.JobApplicationWhereInput = { userId: params.userId };
+
+    if (params.search) {
+        where.OR = [
+            { company: { contains: params.search, mode: "insensitive" } },
+            { jobTitle: { contains: params.search, mode: "insensitive" } },
+            { notes: { contains: params.search, mode: "insensitive" } }
+        ];
+    }
+
+    if (params.status) {
+        const statuses = params.status.split(",");
+        if (statuses.length > 0) {
+            where.applicationStatus = {
+                in: statuses as Prisma.EnumapplicationStatusTypeFilter["in"]
+            };
+        }
+    }
+
+    if (params.location) {
+        where.location = { contains: params.location, mode: "insensitive" };
+    }
+
+    if (params.applied_from || params.applied_to) {
+        where.appliedDate = {};
+        if (params.applied_from) {
+            where.appliedDate.gte = new Date(params.applied_from);
+        }
+        if (params.applied_to) {
+            where.appliedDate.lte = new Date(params.applied_to);
+        }
+        if (!where.appliedDate.gte && !where.appliedDate.lte) {
+            delete where.appliedDate;
+        }
+    }
+
+    if (params.salary_min !== undefined || params.salary_max !== undefined) {
+        where.AND = where.AND || [];
+        if (params.salary_min !== undefined) {
+            (where.AND as Prisma.JobApplicationWhereInput[]).push({
+                OR: [
+                    { salaryMax: { gte: params.salary_min } },
+                    { salaryMax: null }
+                ]
+            });
+        }
+        if (params.salary_max !== undefined) {
+            (where.AND as Prisma.JobApplicationWhereInput[]).push({
+                OR: [
+                    { salaryMin: { lte: params.salary_max } },
+                    { salaryMin: null }
+                ]
+            });
+        }
+    }
+
+    const applications = await prisma.jobApplication.findMany({
+        where,
+        select: { id: true }
+    });
+
+    return applications.map((app) => app.id);
+}
+
 export async function getApplicationDetails(
     userId: string,
     applicationId: string
@@ -382,10 +447,17 @@ export async function bulkUpdateApplications(
         throw new AppError("Some applications not found or not owned by user", 403, "FORBIDDEN");
     }
 
-    return prisma.jobApplication.updateMany({
+    const result = await prisma.jobApplication.updateMany({
         where: { id: { in: ids } },
         data: { applicationStatus: status as never }
     });
+
+    await cacheDeletePattern(`applications:list:${userId}:*`);
+    for (const id of ids) {
+        await cacheDelete(`applications:detail:${userId}:${id}`);
+    }
+
+    return result;
 }
 
 export async function bulkDeleteApplications(userId: string, ids: string[]) {
@@ -398,9 +470,16 @@ export async function bulkDeleteApplications(userId: string, ids: string[]) {
         throw new AppError("Some applications not found or not owned by user", 403, "FORBIDDEN");
     }
 
-    return prisma.jobApplication.deleteMany({
+    const result = await prisma.jobApplication.deleteMany({
         where: { id: { in: ids } }
     });
+
+    await cacheDeletePattern(`applications:list:${userId}:*`);
+    for (const id of ids) {
+        await cacheDelete(`applications:detail:${userId}:${id}`);
+    }
+
+    return result;
 }
 
 export async function getStatusHistory(userId: string, applicationId: string) {
