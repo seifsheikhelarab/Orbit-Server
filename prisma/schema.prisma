@@ -26,6 +26,7 @@ model User {
   jobApplications           JobApplication[]
   documents                 Document[]
   notifications             Notification[]
+  resumes                   Resume[]
 
   @@map("user")
 }
@@ -212,8 +213,24 @@ model ApplicationDocument {
 
   @@unique([applicationId, documentVersionId])
   @@index([applicationId])
-  @@index([documentVersionId])
 }
+
+model Resume {
+  id          String   @id @default(nanoid())
+  userId      String
+  name        String   @db.VarChar(200)
+  slug        String   @unique @default(nanoid())
+  content     Json     // Structured resume data
+  settings    Json     // Template, colors, fonts, margins
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 
 enum notificationType {
   FOLLOW_UP_DUE
