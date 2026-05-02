@@ -1,17 +1,31 @@
-# Orbit Server
+<div align="center">
+  <img src="./public/icon.png" width="96" alt="Orbit Logo" />
+  <h1>Orbit Server</h1>
+  <p>Express + Bun backend for the Orbit job application tracker</p>
+  <p>
+    <img src="https://img.shields.io/badge/Bun-000000?style=flat-square&logo=bun" alt="Bun" />
+    <img src="https://img.shields.io/badge/Express-000000?style=flat-square&logo=express" alt="Express" />
+    <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+    <img src="https://img.shields.io/badge/Prisma-2D3748?style=flat-square&logo=prisma&logoColor=white" alt="Prisma" />
+  </p>
+</div>
 
-Express + Bun backend for the Orbit job application tracker.
+## Overview
 
-### Features
-- **Job Tracking** - CRUD operations for job applications with status workflows and priority levels.
-- **Document Management** - Versioned file uploads for CVs and cover letters with local storage support.
-- **Automated Reminders** - Daily cron jobs for follow-up email notifications with snooze/complete actions.
-- **Unified Auth** - Email/password and Google OAuth integration powered by Better Auth.
-- **Interview Logs** - Track multiple interview rounds with types, outcomes, and detailed notes.
-- **Analytics** - Visualized application stats, conversion rates, and response metrics.
-- **Notification System** - In-app and email alerts for upcoming or overdue follow-ups.
+Orbit Server is the backend API for Orbit, a job application tracker. It provides authentication, data persistence, and background job processing for the Orbit ecosystem.
 
-### Tech Stack
+## Features
+
+- **Job Tracking** - CRUD operations for job applications with status workflows and priority levels
+- **Document Management** - Versioned file uploads for CVs and cover letters with local storage
+- **Automated Reminders** - Daily cron jobs for follow-up email notifications with snooze/complete actions
+- **Unified Auth** - Email/password and Google OAuth integration powered by Better Auth
+- **Interview Logs** - Track multiple interview rounds with types, outcomes, and detailed notes
+- **Analytics** - Visualized application stats, conversion rates, and response metrics
+- **Notification System** - In-app and email alerts for upcoming or overdue follow-ups
+
+## Tech Stack
+
 | Name | Purpose |
 |------|---------|
 | Bun | JavaScript runtime and package manager |
@@ -24,59 +38,16 @@ Express + Bun backend for the Orbit job application tracker.
 | Scalar | Interactive OpenAPI/Swagger documentation |
 | Pino | Structured JSON logging |
 
-### Table of Contents
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Environment Variables](#environment-variables)
-- [Project Structure](#project-structure)
-- [Usage](#usage)
-- [API Reference](#api-reference)
-- [License](#license)
+## Prerequisites
 
-### Prerequisites
-- Node.js >= 20
 - Bun >= 1.1
 - PostgreSQL >= 15
 - Redis (optional, for caching)
 
-### Installation
-1. Install dependencies:
-```bash
-bun install
-```
+## Environment Variables
 
-2. Generate the Prisma client:
-```bash
-bunx prisma generate
-```
+Copy `.env.example` to `.env` and configure the required variables:
 
-3. Push the schema to your database:
-```bash
-bunx prisma db push
-```
-
-### Usage
-#### Development
-Start the server with hot reload:
-```bash
-bun run watch
-```
-
-#### Production
-Build and start the server:
-```bash
-bun run build
-bun run start
-```
-
-#### Maintenance
-Run tests or seed the database:
-```bash
-bun test
-bun run seed
-```
-
-### Environment Variables
 ```env
 # Database & Redis
 DATABASE_URL=postgresql://user:pass@localhost:5432/orbit
@@ -92,14 +63,52 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-app-password
-RESEND_API_KEY=re_123456789
 
 # Google OAuth
 GOOGLE_CLIENT_ID=your-client-id
 GOOGLE_CLIENT_SECRET=your-client-secret
 ```
 
-### API Reference
+## Getting Started
+
+```bash
+# Install dependencies
+bun install
+
+# Generate Prisma client
+bunx prisma generate
+
+# Push schema to database
+bunx prisma db push
+```
+
+## Usage
+
+### Development
+
+Start the server with hot reload:
+
+```bash
+bun run watch
+```
+
+### Production
+
+```bash
+bun run start
+```
+
+### Maintenance
+
+Run tests or seed the database:
+
+```bash
+bun test
+bun run seed
+```
+
+## API Reference
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/auth/*` | ALL | Authentication routes (Sign-in, Sign-up, Sign-out) |
@@ -109,8 +118,9 @@ GOOGLE_CLIENT_SECRET=your-client-secret
 | `/api/v1/analytics/overview`| GET | Dashboard statistics and insights |
 | `/docs` | GET | Interactive Scalar API documentation |
 
-### Project Structure
-```plaintext
+## Project Structure
+
+```
 src/
 ├── api/          # Feature modules (auth, applications, documents)
 ├── middlewares/  # Express middlewares (auth, error, validation)
@@ -120,6 +130,3 @@ src/
 ├── app.ts        # Express app configuration
 └── index.ts      # Server entry point
 ```
-
-### License
-This project is licensed under the MIT License.

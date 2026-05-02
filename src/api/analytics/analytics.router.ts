@@ -7,7 +7,9 @@ import {
     getStatusBreakdown,
     getResponseRateTrend,
     getTopLocations,
-    getSourceBreakdown
+    getSourceBreakdown,
+    getRecentActivity,
+    getPipelineFlow
 } from "./analytics.controller.js";
 
 const router = Router();
@@ -21,5 +23,7 @@ router.get("/status-breakdown", getStatusBreakdown);
 router.get("/response-rate-trend", getResponseRateTrend);
 router.get("/top-locations", getTopLocations);
 router.get("/source-breakdown", getSourceBreakdown);
+router.get("/recent-activity", getRecentActivity);
+router.get("/pipeline-flow", getPipelineFlow);
 
 export default router;

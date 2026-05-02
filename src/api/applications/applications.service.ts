@@ -702,3 +702,48 @@ export async function deleteInterviewRound(
         where: { id: roundId }
     });
 }
+
+export interface UpcomingInterview {
+    id: string;
+    roundType: string;
+    scheduledAt: Date;
+    interviewerName: string | null;
+    notes: string | null;
+    outcome: string | null;
+    applicationId: string;
+    company: string;
+    jobTitle: string;
+}
+
+export async function getUpcomingInterviews(userId: string): Promise<UpcomingInterview[]> {
+    const now = new Date();
+
+    const rounds = await prisma.interviewRound.findMany({
+        where: {
+            scheduledAt: { gt: now },
+            application: { userId }
+        },
+        include: {
+            application: {
+                select: {
+                    id: true,
+                    company: true,
+                    jobTitle: true
+                }
+            }
+        },
+        orderBy: { scheduledAt: 'asc' }
+    });
+
+    return rounds.map((round) => ({
+        id: round.id,
+        roundType: round.roundType,
+        scheduledAt: round.scheduledAt!,
+        interviewerName: round.interviewerName,
+        notes: round.notes,
+        outcome: round.outcome,
+        applicationId: round.applicationId,
+        company: round.application.company,
+        jobTitle: round.application.jobTitle
+    }));
+}

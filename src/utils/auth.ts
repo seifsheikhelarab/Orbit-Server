@@ -10,6 +10,7 @@ import type { Request } from "express";
  * better Auth initializer
  */
 export const auth = betterAuth({
+    baseURL: "http://localhost:5726",
     database: prismaAdapter(prisma, {
         provider: "postgresql"
     }),
@@ -18,14 +19,17 @@ export const auth = betterAuth({
     },
     trustedOrigins: [
         "http://localhost:5173",
+        "http://localhost:5174",
         "http://localhost:3000"
     ],
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-            redirectURL: process.env.GOOGLE_REDIRECT_URL || "http://localhost:5173/api/auth/callback/google"
         }
+    },
+    advanced: {
+        disableCSRFCheck: true
     },
     plugins: [bearer()]
 });

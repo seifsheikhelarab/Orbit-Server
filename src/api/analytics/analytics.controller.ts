@@ -120,3 +120,31 @@ export const getSourceBreakdown = asyncHandler(
         );
     }
 );
+
+export const getRecentActivity = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+        const data = await AnalyticsService.getRecentActivity(req.user.id);
+
+        ResponseHandler.success(
+            res,
+            "Recent activity retrieved successfully",
+            200,
+            data,
+            req.originalUrl
+        );
+    }
+);
+
+export const getPipelineFlow = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+        const data = await AnalyticsService.getPipelineFlow(req.user.id);
+
+        ResponseHandler.success(
+            res,
+            "Pipeline flow retrieved successfully",
+            200,
+            data,
+            req.originalUrl
+        );
+    }
+);

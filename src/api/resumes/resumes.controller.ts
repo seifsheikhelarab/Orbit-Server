@@ -3,7 +3,7 @@ import { asyncHandler } from "../../middlewares/error.middleware.js";
 import { ResponseHandler, HttpStatus } from "../../utils/response.js";
 import * as ResumesService from "./resumes.service.js";
 import type { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
-import type { GetResumesQuery } from "./resumes.schemas.js";
+import type { GetResumesQuery, AttachResumeInput } from "./resumes.schemas.js";
 
 export const getResumes = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
@@ -89,6 +89,24 @@ export const deleteResume = asyncHandler(
             "Resume deleted successfully",
             HttpStatus.OK,
             null,
+            req.originalUrl
+        );
+    }
+);
+
+export const attachResumeToApplication = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+        const attachment = await ResumesService.attachResumeToApplication(
+            req.user.id,
+            req.params.id as string,
+            (req.body as AttachResumeInput).applicationId
+        );
+
+        ResponseHandler.success(
+            res,
+            "Resume attached to application",
+            HttpStatus.CREATED,
+            attachment,
             req.originalUrl
         );
     }

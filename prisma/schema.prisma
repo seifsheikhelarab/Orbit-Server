@@ -14,19 +14,18 @@ model User {
   password                  String?
   emailVerified             Boolean          @default(false)
   image                     String?
-  googleId                  String?          @unique
-  avatarUrl                 String?
-  timezone                  String           @default("UTC")
-  emailRemindersEnabled     Boolean          @default(true)
-  inAppNotificationsEnabled Boolean          @default(true)
   createdAt                 DateTime         @default(now())
   updatedAt                 DateTime         @updatedAt
-  sessions                  Session[]
-  accounts                  Account[]
+  avatarUrl                 String?
+  emailRemindersEnabled     Boolean          @default(true)
+  googleId                  String?          @unique
+  inAppNotificationsEnabled Boolean          @default(true)
+  timezone                  String           @default("UTC")
   jobApplications           JobApplication[]
-  documents                 Document[]
   notifications             Notification[]
   resumes                   Resume[]
+  accounts                  Account[]
+  sessions                  Session[]
 
   @@map("user")
 }
@@ -34,7 +33,7 @@ model User {
 model Session {
   id        String   @id
   expiresAt DateTime
-  token     String
+  token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
@@ -42,7 +41,6 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@index([userId])
   @@map("session")
 }
@@ -52,7 +50,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -62,6 +59,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("account")
@@ -77,6 +75,138 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model JobApplication {
+  id                   String                @id @default(nanoid())
+  userId               String
+  company              String
+  jobTitle             String
+  applicationStatus    applicationStatusType @default(SAVED)
+  jobURL               String?
+  location             String?
+  salaryMin            Int?
+  salaryMax            Int?
+  appliedDate          DateTime?
+  notes                String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  followUpDate         DateTime?
+  followUpNote         String?
+  source               String?
+  applicationResumes ApplicationResume[] @relation("ApplicationResumesRelation")
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notifications        Notification[]
+  reminderJobs         ReminderJob[]
+  contacts             Contact[]
+  interviewRounds      InterviewRound[]
+  statusHistory        StatusHistory[]
+
+@@index([userId])
+  @@index([followUpDate])
+}
+
+model Resume {
+  id        String   @id @default(nanoid())
+  userId    String
+  name      String   @db.VarChar(200)
+  type      resumeType @default(RESUME)
+  slug      String   @unique @default(nanoid())
+  content   Json
+  settings  Json
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications ApplicationResume[]
+
+  @@index([userId])
+  @@index([userId, type])
+}
+
+model ApplicationResume {
+  id             String        @id @default(nanoid())
+  applicationId  String
+  resumeId       String
+  createdAt      DateTime      @default(now())
+  application    JobApplication @relation("ApplicationResumesRelation", fields: [applicationId], references: [id], onDelete: Cascade)
+  resume         Resume        @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, resumeId])
+  @@index([applicationId])
+  @@index([resumeId])
+}
+
+model Notification {
+  id            String           @id @default(nanoid())
+  userId        String
+  applicationId String?
+  type          notificationType
+  title         String           @db.VarChar(255)
+  body          String?
+  readAt        DateTime?
+  actionedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  application   JobApplication?  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([applicationId])
+}
+
+model ReminderJob {
+  id            String         @id @default(nanoid())
+  applicationId String
+  scheduledDate DateTime       @db.Date
+  sentAt        DateTime?
+  createdAt     DateTime       @default(now())
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, scheduledDate])
+  @@index([applicationId])
+}
+
+model StatusHistory {
+  id            String                 @id @default(nanoid())
+  applicationId String
+  fromStatus    applicationStatusType?
+  toStatus      applicationStatusType
+  note          String?
+  changedAt     DateTime               @default(now())
+  application   JobApplication         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("status_history")
+}
+
+model Contact {
+  id            String         @id @default(nanoid())
+  applicationId String
+  name          String         @db.VarChar(200)
+  title         String?        @db.VarChar(200)
+  email         String?        @db.VarChar(255)
+  phone         String?        @db.VarChar(50)
+  linkedinUrl   String?
+  createdAt     DateTime       @default(now())
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("contact")
+}
+
+model InterviewRound {
+  id              String             @id @default(nanoid())
+  applicationId   String
+  roundType       interviewRoundType
+  scheduledAt     DateTime?
+  interviewerName String?            @db.VarChar(200)
+  notes           String?
+  outcome         interviewOutcome?
+  createdAt       DateTime           @default(now())
+  application     JobApplication     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("interview_round")
 }
 
 enum locationType {
@@ -125,177 +255,14 @@ enum resultType {
   failed
 }
 
-enum fileType {
-  CV
-  coverLetter
-  portfolio
-}
-
-model JobApplication {
-  id                String                @id @default(nanoid())
-  userId            String
-  company           String
-  jobTitle          String
-  applicationStatus applicationStatusType @default(SAVED)
-  jobURL            String?
-  location          String?
-  salaryMin         Int?
-  salaryMax         Int?
-  appliedDate       DateTime?
-  notes             String?
-  followUpDate      DateTime?
-  followUpNote      String?
-  source            String?
-  createdAt         DateTime              @default(now())
-  updatedAt         DateTime              @updatedAt
-
-  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  applicationDocuments ApplicationDocument[] @relation("ApplicationDocumentsRelation")
-  notifications      Notification[]
-  reminderJobs      ReminderJob[]
-  statusHistory      StatusHistory[]
-  contacts           Contact[]
-  interviewRounds    InterviewRound[]
-
-  @@index([userId])
-  @@index([followUpDate])
-}
-
-enum documentType {
-  CV
+enum resumeType {
+  RESUME
   COVER_LETTER
-  OTHER
 }
-
-model Document {
-  id              String    @id @default(nanoid())
-  userId          String
-  name            String    @db.VarChar(200)
-  type            documentType
-  activeVersionId String?   @unique
-  deletedAt       DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  versions        DocumentVersion[] @relation("DocumentVersions")
-
-  @@index([userId])
-  @@index([deletedAt])
-}
-
-model DocumentVersion {
-  id                String   @id @default(nanoid())
-  documentId        String
-  versionNumber     Int
-  originalFilename  String   @db.VarChar(255)
-  storageKey       String   @db.Text
-  mimeType          String   @db.VarChar(100)
-  fileSizeBytes     Int
-  source            String   @default("LOCAL")
-  createdAt         DateTime @default(now())
-
-  document              Document              @relation("DocumentVersions", fields: [documentId], references: [id], onDelete: Cascade)
-  applicationDocuments   ApplicationDocument[] @relation("VersionApplications")
-
-  @@unique([documentId, versionNumber])
-  @@index([documentId])
-}
-
-model ApplicationDocument {
-  id                  String   @id @default(nanoid())
-  applicationId       String
-  documentVersionId   String
-  createdAt           DateTime @default(now())
-
-  application    JobApplication  @relation("ApplicationDocumentsRelation", fields: [applicationId], references: [id], onDelete: Cascade)
-  documentVersion DocumentVersion @relation("VersionApplications", fields: [documentVersionId], references: [id], onDelete: Cascade)
-
-  @@unique([applicationId, documentVersionId])
-  @@index([applicationId])
-}
-
-model Resume {
-  id          String   @id @default(nanoid())
-  userId      String
-  name        String   @db.VarChar(200)
-  slug        String   @unique @default(nanoid())
-  content     Json     // Structured resume data
-  settings    Json     // Template, colors, fonts, margins
-  isPublic    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
 
 enum notificationType {
   FOLLOW_UP_DUE
   FOLLOW_UP_OVERDUE
-}
-
-model Notification {
-  id             String            @id @default(nanoid())
-  userId         String
-  applicationId String?
-  type           notificationType
-  title          String            @db.VarChar(255)
-  body           String?
-  readAt         DateTime?
-  actionedAt     DateTime?
-  createdAt      DateTime          @default(now())
-
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  application  JobApplication? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([applicationId])
-}
-
-model ReminderJob {
-  id             String      @id @default(nanoid())
-  applicationId  String
-  scheduledDate DateTime    @db.Date
-  sentAt         DateTime?
-  createdAt      DateTime    @default(now())
-
-  application JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-
-  @@unique([applicationId, scheduledDate])
-  @@index([applicationId])
-}
-
-model StatusHistory {
-  id            String                @id @default(nanoid())
-  applicationId String
-  fromStatus    applicationStatusType?
-  toStatus      applicationStatusType
-  note          String?
-  changedAt     DateTime              @default(now())
-
-  application JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-
-  @@index([applicationId])
-  @@map("status_history")
-}
-
-model Contact {
-  id            String   @id @default(nanoid())
-  applicationId String
-  name          String   @db.VarChar(200)
-  title         String?  @db.VarChar(200)
-  email         String?  @db.VarChar(255)
-  phone         String?  @db.VarChar(50)
-  linkedinUrl   String?  @db.Text
-  createdAt     DateTime @default(now())
-
-  application JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-
-  @@index([applicationId])
-  @@map("contact")
 }
 
 enum interviewRoundType {
@@ -311,20 +278,4 @@ enum interviewOutcome {
   POSITIVE
   NEUTRAL
   NEGATIVE
-}
-
-model InterviewRound {
-  id             String            @id @default(nanoid())
-  applicationId  String
-  roundType      interviewRoundType
-  scheduledAt    DateTime?
-  interviewerName String?           @db.VarChar(200)
-  notes          String?
-  outcome        interviewOutcome?
-  createdAt      DateTime          @default(now())
-
-  application JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-
-  @@index([applicationId])
-  @@map("interview_round")
 }

@@ -5,7 +5,8 @@ import * as ResumesController from "./resumes.controller.js";
 import {
     createResumeSchema,
     updateResumeSchema,
-    getResumesQuerySchema
+    getResumesQuerySchema,
+    attachResumeSchema
 } from "./resumes.schemas.js";
 
 const router = Router();
@@ -31,5 +32,11 @@ router
         ResumesController.updateResume
     )
     .delete(ResumesController.deleteResume);
+
+router.post(
+    "/:id/attach",
+    validateRequest(attachResumeSchema),
+    ResumesController.attachResumeToApplication
+);
 
 export default router;

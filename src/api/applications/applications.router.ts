@@ -40,12 +40,15 @@ router
     .delete(applicationsController.deleteApplication);
 
 router.get("/:id/status-history", applicationsController.getStatusHistory);
+router.get("/:id/resumes", applicationsController.getApplicationResumes);
+router.delete("/:id/resumes/:attachmentId", applicationsController.detachApplicationResume);
 router.get("/:id/contacts", applicationsController.getContacts);
 router.post("/:id/contacts", applicationsController.createContact);
 router.patch("/:id/contacts/:contactId", applicationsController.updateContact);
 router.delete("/:id/contacts/:contactId", applicationsController.deleteContact);
 
 router.get("/:id/interviews", applicationsController.getInterviewRounds);
+router.get("/interviews/upcoming", applicationsController.getUpcomingInterviews);
 router.post("/:id/interviews", applicationsController.createInterviewRound);
 router.patch("/:id/interviews/:roundId", applicationsController.updateInterviewRound);
 router.delete("/:id/interviews/:roundId", applicationsController.deleteInterviewRound);

@@ -1,7 +1,11 @@
 import type { Response } from "express";
 import { asyncHandler } from "../../middlewares/error.middleware.js";
 import * as ApplicationsService from "./applications.service.js";
-import { getApplicationsDocumentCounts } from "../application-documents/application-documents.service.js";
+import {
+    detachResumeFromApplication,
+    getApplicationsResumeCounts,
+    getResumesForApplication
+} from "../resumes/resumes.service.js";
 import { ResponseHandler, ErrorCode } from "../../utils/response.js";
 import { getPagination } from "../../utils/pages.js";
 import { HttpStatus } from "../../utils/response.js";
@@ -138,13 +142,48 @@ export const getApplicationDocumentCountsHandler = asyncHandler(
         }
 
         const ids = applicationIds.split(",");
-        const counts = await getApplicationsDocumentCounts(req.user.id, ids);
+        const counts = await getApplicationsResumeCounts(req.user.id, ids);
 
         ResponseHandler.success(
             res,
             "Document counts retrieved successfully",
             HttpStatus.OK,
             counts,
+            req.originalUrl
+        );
+    }
+);
+
+export const getApplicationResumes = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+        const result = await getResumesForApplication(
+            req.user.id,
+            req.params.id as string
+        );
+
+        ResponseHandler.success(
+            res,
+            "Application resumes retrieved successfully",
+            HttpStatus.OK,
+            result,
+            req.originalUrl
+        );
+    }
+);
+
+export const detachApplicationResume = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+        await detachResumeFromApplication(
+            req.user.id,
+            req.params.attachmentId as string,
+            req.params.id as string
+        );
+
+        ResponseHandler.success(
+            res,
+            "Resume detached from application",
+            HttpStatus.OK,
+            null,
             req.originalUrl
         );
     }
@@ -438,6 +477,22 @@ export const deleteInterviewRound = asyncHandler(
         ResponseHandler.success(
             res,
             "Interview round deleted successfully",
+            HttpStatus.OK,
+            result,
+            req.originalUrl
+        );
+    }
+);
+
+export const getUpcomingInterviews = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+        const result = await ApplicationsService.getUpcomingInterviews(
+            req.user.id
+        );
+
+        ResponseHandler.success(
+            res,
+            "Upcoming interviews retrieved successfully",
             HttpStatus.OK,
             result,
             req.originalUrl

@@ -14,7 +14,8 @@ import {
 import apiRouter from "./api/index.js";
 import { apiReference } from "@scalar/express-api-reference";
 import { generateOpenAPISpec } from "./utils/openapi.js";
-import { initJobs } from "./jobs/index.js";
+// import { initJobs } from "./jobs/index.js";
+import { rateLimit } from "express-rate-limit";
 
 /**
  * Default Express app
@@ -35,35 +36,27 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: ["http://localhost:5173"],
         credentials: true
     })
 );
-app.use(
-    helmet({
-        contentSecurityPolicy: {
-            directives: {
-                "script-src": [
-                    "'self'",
-                    "'unsafe-inline'",
-                    "https://cdn.jsdelivr.net"
-                ],
-                "script-src-elem": [
-                    "'self'",
-                    "'unsafe-inline'",
-                    "https://cdn.jsdelivr.net"
-                ]
-            }
-        }
-    })
-);
-
 app.use(
     "/docs",
     apiReference({
         content: generateOpenAPISpec()
     })
 );
+
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 100,
+	standardHeaders: 'draft-8',
+	legacyHeaders: false,
+	ipv6Subnet: 56,
+})
+
+app.use(limiter)
+
 
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
@@ -96,7 +89,7 @@ export async function startServer(): Promise<void> {
         const server = app.listen(port, async () => {
             logger.info(`[Init] Server running on http://localhost:${port}`);
             logger.info(`[Init] Scalar docs on http://localhost:${port}/docs`);
-            initJobs();
+            // initJobs();
         });
 
         process.on("SIGTERM", async () => {

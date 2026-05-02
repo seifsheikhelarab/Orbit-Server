@@ -10,7 +10,11 @@ export async function getResumes(
     userId: string,
     query: GetResumesQuery
 ) {
-    const where = { userId };
+    const where: any = { userId };
+    
+    if (query.type) {
+        where.type = query.type;
+    }
 
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
@@ -53,6 +57,7 @@ export async function createResume(
             data: {
                 userId,
                 name: data.name,
+                type: data.type || "RESUME",
                 slug: data.slug || undefined,
                 content: data.content as any,
                 settings: data.settings as any,
@@ -123,4 +128,105 @@ export async function deleteResume(userId: string, resumeId: string) {
     await prisma.resume.delete({
         where: { id: resumeId, userId }
     });
+}
+
+export async function attachResumeToApplication(
+    userId: string,
+    resumeId: string,
+    applicationId: string
+) {
+    const resume = await prisma.resume.findFirst({
+        where: { id: resumeId, userId }
+    });
+
+    if (!resume) {
+        throw new AppError("Resume not found", HttpStatus.NOT_FOUND, "NOT_FOUND");
+    }
+
+    const application = await prisma.jobApplication.findFirst({
+        where: { id: applicationId, userId }
+    });
+
+    if (!application) {
+        throw new AppError("Application not found", HttpStatus.NOT_FOUND, "NOT_FOUND");
+    }
+
+    const existing = await prisma.applicationResume.findFirst({
+        where: { applicationId, resumeId }
+    });
+
+    if (existing) {
+        return existing;
+    }
+
+    return prisma.applicationResume.create({
+        data: { applicationId, resumeId }
+    });
+}
+
+export async function getResumesForApplication(userId: string, applicationId: string) {
+    const application = await prisma.jobApplication.findFirst({
+        where: { id: applicationId, userId }
+    });
+
+    if (!application) {
+        throw new AppError("Application not found", HttpStatus.NOT_FOUND, "NOT_FOUND");
+    }
+
+    const attachments = await prisma.applicationResume.findMany({
+        where: { applicationId },
+        include: { resume: true },
+        orderBy: { createdAt: "desc" }
+    });
+
+    return attachments;
+}
+
+export async function detachResumeFromApplication(
+    userId: string,
+    attachmentId: string,
+    applicationId: string
+) {
+    const attachment = await prisma.applicationResume.findFirst({
+        where: { id: attachmentId, applicationId },
+        include: { application: true }
+    });
+
+    if (!attachment) {
+        throw new AppError("Attachment not found", HttpStatus.NOT_FOUND, "NOT_FOUND");
+    }
+
+    if (attachment.application.userId !== userId) {
+        throw new AppError("Not found", HttpStatus.NOT_FOUND, "NOT_FOUND");
+    }
+
+    await prisma.applicationResume.delete({
+        where: { id: attachmentId }
+    });
+}
+
+export async function getApplicationsResumeCounts(
+    userId: string,
+    applicationIds: string[]
+): Promise<Record<string, number>> {
+    const counts = await prisma.applicationResume.groupBy({
+        by: ["applicationId"],
+        where: {
+            applicationId: { in: applicationIds },
+            resume: {
+                userId
+            }
+        },
+        _count: {
+            id: true
+        }
+    });
+
+    return counts.reduce(
+        (acc, { applicationId, _count }) => {
+            acc[applicationId] = _count.id;
+            return acc;
+        },
+        {} as Record<string, number>
+    );
 }
