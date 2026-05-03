@@ -1,20 +1,31 @@
 import "dotenv/config";
-import { RedisClient } from "bun";
+import { Redis } from "ioredis";
 import logger from "./logger.js";
 
-let redisClient: RedisClient | null = null;
+let redisClient: Redis | null = null;
 
-export function getRedisClient(): RedisClient {
+export function getRedisClient(): Redis {
     if (!redisClient) {
         const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
-        redisClient = new RedisClient(redisUrl);
+        redisClient = new Redis(redisUrl, {
+            maxRetriesPerRequest: null,
+            lazyConnect: true
+        });
+        
+        redisClient.on("error", (err) => {
+            logger.error(`[Redis] Error: ${err.message}`);
+        });
+
+        redisClient.on("connect", () => {
+            logger.info("[Redis] Connected");
+        });
     }
     return redisClient;
 }
 
 export async function disconnectRedis(): Promise<void> {
     if (redisClient) {
-        redisClient.close();
+        await redisClient.quit();
         redisClient = null;
         logger.info("[Init] Redis disconnected");
     }

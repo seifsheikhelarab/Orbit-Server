@@ -24,8 +24,7 @@ export async function cacheSet(
 ): Promise<void> {
     try {
         const redis = getRedisClient();
-        await redis.set(key, JSON.stringify(value));
-        await redis.expire(key, ttl);
+        await redis.set(key, JSON.stringify(value), "EX", ttl);
     } catch (error) {
         logger.warn(`[Cache] Failed to set key ${key}: ${error}`);
     }
@@ -43,10 +42,18 @@ export async function cacheDelete(key: string): Promise<void> {
 export async function cacheDeletePattern(pattern: string): Promise<void> {
     try {
         const redis = getRedisClient();
-        const keys = await redis.keys(pattern);
-        if (keys.length > 0) {
-            await redis.del(...keys);
-        }
+        const stream = redis.scanStream({
+            match: pattern,
+            count: 100
+        });
+
+        stream.on("data", async (keys: string[]) => {
+            if (keys.length > 0) {
+                const pipeline = redis.pipeline();
+                keys.forEach((key) => pipeline.del(key));
+                await pipeline.exec();
+            }
+        });
     } catch (error) {
         logger.warn(`[Cache] Failed to delete keys matching ${pattern}: ${error}`);
     }
