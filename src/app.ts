@@ -40,7 +40,14 @@ app.use(
             "http://localhost:5173",
             "https://orbit-applications.vercel.app"
         ],
-        credentials: true
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+            "x-better-auth-origin",
+            "x-better-auth-token"
+        ]
     })
 );
 app.use(
