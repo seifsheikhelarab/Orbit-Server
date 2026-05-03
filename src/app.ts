@@ -36,7 +36,10 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 app.use(
     cors({
-        origin: ["http://localhost:5173"],
+        origin: [
+            "http://localhost:5173",
+            "https://orbit-applications.vercel.app"
+        ],
         credentials: true
     })
 );
@@ -48,15 +51,14 @@ app.use(
 );
 
 const limiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	limit: 100,
-	standardHeaders: 'draft-8',
-	legacyHeaders: false,
-	ipv6Subnet: 56,
-})
+    windowMs: 15 * 60 * 1000,
+    limit: 100,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+    ipv6Subnet: 56
+});
 
-app.use(limiter)
-
+app.use(limiter);
 
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
