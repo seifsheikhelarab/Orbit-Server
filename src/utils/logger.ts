@@ -9,14 +9,6 @@ dotenv.config({ quiet: true });
  */
 const logger: Logger = pino({
     level: process.env.LOG_LEVEL || "info",
-    transport: {
-        target: "pino-pretty",
-        options: {
-            colorize: true,
-            singleLine: false,
-            ignore: "pid,hostname"
-        }
-    },
     timestamp: pino.stdTimeFunctions.isoTime
 });
 
