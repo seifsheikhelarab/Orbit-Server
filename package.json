@@ -27,7 +27,8 @@
         "format": "prettier --write .",
         "docs": "typedoc --entryPointStrategy Expand src",
         "test": "bun test",
-        "seed": "bun run src/scripts/seed.script.ts"
+        "seed": "bun run src/scripts/seed.script.ts",
+        "postinstall": "prisma generate"
     },
     "dependencies": {
         "@faker-js/faker": "^10.4.0",
