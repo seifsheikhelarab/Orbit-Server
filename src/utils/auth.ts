@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import "dotenv/config";
 import { bearer } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import prisma from "./prisma";
+import prisma from "./prisma.js";
 import { fromNodeHeaders } from "better-auth/node";
 import type { Request } from "express";
 
