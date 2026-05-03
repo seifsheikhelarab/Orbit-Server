@@ -1,5 +1,5 @@
 import prisma from "../../utils/prisma.js";
-import { Prisma } from "../../generated/prisma/client.ts";
+import { Prisma } from "../../generated/prisma/client.js";
 import { AppError, NotFoundError } from "../../utils/response.js";
 import {
     cacheGet,

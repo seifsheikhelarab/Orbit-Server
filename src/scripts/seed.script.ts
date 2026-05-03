@@ -1,7 +1,7 @@
-import prisma from "../utils/prisma.ts";
+import prisma from "../utils/prisma.js";
 import { faker } from "@faker-js/faker";
-import logger from "../utils/logger.ts";
-import { auth } from "../utils/auth.ts";
+import logger from "../utils/logger.js";
+import { auth } from "../utils/auth.js";
 
 const STATUSES = ["SAVED", "APPLIED", "PHONE_SCREEN", "INTERVIEW", "OFFER", "CLOSED"] as const;
 const SOURCES = ["LinkedIn", "Indeed", "Company Website", "Referral", "Job Fair", "Glassdoor", "Handshake", "AngelList", "HackerNews", "Twitter", "Reddit", null];
