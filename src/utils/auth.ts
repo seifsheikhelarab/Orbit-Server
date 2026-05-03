@@ -30,7 +30,8 @@ export const auth = betterAuth({
         }
     },
     advanced: {
-        disableCSRFCheck: true
+        disableCSRFCheck: true,
+        useSecureCookies: true
     },
     plugins: [bearer()]
 });
