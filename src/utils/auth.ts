@@ -15,7 +15,8 @@ export const auth = betterAuth({
         provider: "postgresql"
     }),
     emailAndPassword: {
-        enabled: true
+        enabled: true,
+        requireEmailVerification: false
     },
     trustedOrigins: [
         "http://localhost:5173",
@@ -26,12 +27,17 @@ export const auth = betterAuth({
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!
         }
     },
     advanced: {
         disableCSRFCheck: true,
-        useSecureCookies: true
+        useSecureCookies: true,
+        defaultCookieAttributes: {
+            sameSite: "None",
+            secure: true,
+            partitioned: true
+        }
     },
     plugins: [bearer()]
 });
