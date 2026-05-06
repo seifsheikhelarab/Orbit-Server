@@ -9,7 +9,17 @@ dotenv.config({ quiet: true });
  */
 const logger: Logger = pino({
     level: process.env.LOG_LEVEL || "info",
-    timestamp: pino.stdTimeFunctions.isoTime
+    timestamp: pino.stdTimeFunctions.isoTime,
+    formatters: {
+        level: (label) => {
+            return { level: label.toUpperCase() };
+        }
+    },
+    base: {
+        env: process.env.NODE_ENV,
+        service: 'Orbit-Server',
+    },
+    transport: process.env.LOCAL ? { target: "pino-pretty", options: { colorize: true } } : undefined
 });
 
 export default logger;

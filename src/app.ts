@@ -6,7 +6,6 @@ import logger from "./utils/logger.js";
 import prisma from "./utils/prisma.js";
 import { getRedisClient, disconnectRedis } from "./utils/redis.js";
 import cors from "cors";
-import helmet from "helmet";
 import {
     errorHandler,
     notFoundHandler
@@ -57,7 +56,7 @@ app.use(
     })
 );
 
-const limiter = rateLimit({
+const limiter = process.env.LOCAL ? rateLimit({limit: 10000}) : rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 100,
     standardHeaders: "draft-8",

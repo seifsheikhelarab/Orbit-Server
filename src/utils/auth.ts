@@ -30,14 +30,14 @@ export const auth = betterAuth({
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!
         }
     },
-    advanced: {
-        disableCSRFCheck: true,
-        useSecureCookies: true,
-        defaultCookieAttributes: {
-            sameSite: "None",
-            secure: true,
-            partitioned: true
+    session: {
+        cookieCache: {
+            enabled: true,
+            maxAge: 5 * 60
         }
+    },
+    advanced: {
+        disableCSRFCheck: true
     },
     plugins: [bearer()]
 });

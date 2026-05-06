@@ -6,6 +6,7 @@ import authRouter from "./auth/auth.router.js";
 import analyticsRouter from "./analytics/analytics.router.js";
 import usersRouter from "./users/users.router.js";
 import resumesRouter from "./resumes/resumes.router.js";
+import profileRouter from "./profile/profile.router.js";
 
 export const apiRouter = Router();
 
@@ -16,5 +17,6 @@ apiRouter.use("/reminders", remindersRouter);
 apiRouter.use("/analytics", analyticsRouter);
 apiRouter.use("/users", usersRouter);
 apiRouter.use("/resumes", resumesRouter);
+apiRouter.use("/profile", profileRouter);
 
 export default apiRouter;
