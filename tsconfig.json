@@ -13,6 +13,7 @@
         "outDir": "./dist",
         "sourceMap": true,
         "inlineSources": true,
+        "rootDir": "./src",
 
         // Bundler mode
         "moduleResolution": "node",
@@ -31,5 +32,6 @@
         "noUnusedLocals": false,
         "noUnusedParameters": false,
         "noPropertyAccessFromIndexSignature": false
-    }
+    },
+    "exclude": ["eslint.config.ts", "prisma.config.ts", "prettier.config.ts"]
 }

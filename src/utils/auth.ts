@@ -37,7 +37,7 @@ export const auth = betterAuth({
         }
     },
     advanced: {
-        disableCSRFCheck: true
+        disableCSRFCheck: true,
     },
     plugins: [bearer()]
 });

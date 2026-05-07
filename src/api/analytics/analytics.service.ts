@@ -594,7 +594,7 @@ export async function getPipelineFlow(
         }
     }
 
-    let links: SankeyLink[] = Array.from(linksMap.entries()).map(([key, value]) => {
+    const links: SankeyLink[] = Array.from(linksMap.entries()).map(([key, value]) => {
         const [source, target] = key.split("-").map(Number);
         return { source: source!, target: target!, value };
     });

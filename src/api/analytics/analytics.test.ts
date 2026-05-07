@@ -19,6 +19,7 @@ beforeAll(async () => {
             }
         });
     } catch {
+        console.log("Failed to sign up, continuing with existing session");
     }
 
     const res = await request(app)
