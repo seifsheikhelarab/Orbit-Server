@@ -9,17 +9,19 @@ const applicationStatusEnum = z.enum([
     "CLOSED"
 ]);
 
+const nullableDate = z.coerce.date().nullable().optional();
+
 export const createApplication = z.object({
     company: z.string().min(1, "Company name is required").max(200, "Too long"),
     jobTitle: z.string().min(1, "Job title is required").max(200, "Too long"),
     applicationStatus: applicationStatusEnum.optional(),
     jobURL: z.string().url("Invalid job URL").optional().or(z.literal("")),
     location: z.string().max(200).optional().or(z.literal("")),
-    salaryMin: z.number().nonnegative("Salary must be non-negative").optional(),
-    salaryMax: z.number().nonnegative("Salary must be non-negative").optional(),
-    appliedDate: z.coerce.date().optional(),
+    salaryMin: z.number().nonnegative("Salary must be non-negative").nullable().optional(),
+    salaryMax: z.number().nonnegative("Salary must be non-negative").nullable().optional(),
+    appliedDate: nullableDate,
     notes: z.string().optional().or(z.literal("")),
-    followUpDate: z.coerce.date().optional(),
+    followUpDate: nullableDate,
     followUpNote: z.string().optional().or(z.literal("")),
     source: z.string().max(100).optional().or(z.literal(""))
 });

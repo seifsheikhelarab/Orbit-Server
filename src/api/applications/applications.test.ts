@@ -2,12 +2,33 @@ import { auth } from './../../utils/auth.js';
 import request from "supertest";
 import app from "../../app.js";
 import { describe, it, expect, beforeAll } from "bun:test";
+import { createApplication as createApplicationSchema } from "./applications.schemas.js";
 
 const TEST_EMAIL = "apitest@example.com";
 const TEST_PASSWORD = "testpass123";
 const TEST_NAME = "API Test User";
 
 let sessionCookie: string | undefined;
+
+describe("Applications schema", () => {
+    it("should accept cleared optional salary and date fields", () => {
+        const result = createApplicationSchema.safeParse({
+            company: "Test Company",
+            jobTitle: "Software Engineer",
+            salaryMin: null,
+            salaryMax: null,
+            appliedDate: null,
+            followUpDate: null
+        });
+
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+        expect(result.data.salaryMin).toBeNull();
+        expect(result.data.salaryMax).toBeNull();
+        expect(result.data.appliedDate).toBeNull();
+        expect(result.data.followUpDate).toBeNull();
+    });
+});
 
 beforeAll(async () => {
     try {
@@ -110,12 +131,38 @@ describe("Applications API - Authenticated", () => {
         it("should create application with valid data", async () => {
             const cookie = getCookie();
             if (!cookie) return expect(true).toBe(true);
+            const appliedDate = "2026-05-01T00:00:00.000Z";
+            const followUpDate = "2026-05-08T00:00:00.000Z";
             const res = await request(app)
                 .post("/api/v1/applications")
                 .set("Cookie", cookie)
-                .send({ company: "Test Company", jobTitle: "Software Engineer" });
+                .send({
+                    company: "Test Company",
+                    jobTitle: "Software Engineer",
+                    applicationStatus: "APPLIED",
+                    jobURL: "https://example.com/jobs/123",
+                    location: "Remote",
+                    salaryMin: 100000,
+                    salaryMax: 140000,
+                    appliedDate,
+                    notes: "Test notes",
+                    followUpDate,
+                    followUpNote: "Follow up next week",
+                    source: "LinkedIn"
+                });
             expect(res.status).toBe(201);
             expect(res.body.data.company).toBe("Test Company");
+            expect(res.body.data.jobTitle).toBe("Software Engineer");
+            expect(res.body.data.applicationStatus).toBe("APPLIED");
+            expect(res.body.data.jobURL).toBe("https://example.com/jobs/123");
+            expect(res.body.data.location).toBe("Remote");
+            expect(res.body.data.salaryMin).toBe(100000);
+            expect(res.body.data.salaryMax).toBe(140000);
+            expect(res.body.data.appliedDate).toBe(appliedDate);
+            expect(res.body.data.notes).toBe("Test notes");
+            expect(res.body.data.followUpDate).toBe(followUpDate);
+            expect(res.body.data.followUpNote).toBe("Follow up next week");
+            expect(res.body.data.source).toBe("LinkedIn");
         });
     });
 
