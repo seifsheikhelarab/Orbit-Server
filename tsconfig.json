@@ -33,5 +33,5 @@
         "noUnusedParameters": false,
         "noPropertyAccessFromIndexSignature": false
     },
-    "exclude": ["eslint.config.ts", "prisma.config.ts", "prettier.config.ts"]
+    "exclude": ["eslint.config.ts", "prisma.config.ts", "prettier.config.ts", "dist"]
 }

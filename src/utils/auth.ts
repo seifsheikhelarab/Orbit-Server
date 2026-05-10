@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import "dotenv/config";
 import { bearer } from "better-auth/plugins";
+import { expo } from "@better-auth/expo";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./prisma.js";
 import { fromNodeHeaders } from "better-auth/node";
@@ -20,9 +21,11 @@ export const auth = betterAuth({
     },
     trustedOrigins: [
         "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:3000",
-        "https://orbit-applications.vercel.app"
+        "https://orbit-applications.vercel.app",
+        "orbitapp://",
+        "exp://",
+        "exp://**",
+        "exp://192.168.*.*:*/**"
     ],
     socialProviders: {
         google: {
@@ -33,13 +36,13 @@ export const auth = betterAuth({
     session: {
         cookieCache: {
             enabled: true,
-            maxAge: 5 * 60
+            maxAge: 5 * 60 * 60 * 24
         }
     },
     advanced: {
         disableCSRFCheck: true,
     },
-    plugins: [bearer()]
+    plugins: [bearer(), expo()]
 });
 
 /**

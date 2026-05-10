@@ -13,7 +13,6 @@ import {
 import apiRouter from "./api/index.js";
 import { apiReference } from "@scalar/express-api-reference";
 import { generateOpenAPISpec } from "./utils/openapi.js";
-// import { initJobs } from "./jobs/index.js";
 import { rateLimit } from "express-rate-limit";
 
 /**
@@ -32,14 +31,10 @@ const port: string | number = process.env.PORT || 5726;
 // Express middleware initialization
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
-app.set("trust proxy", true);
 
 app.use(
     cors({
-        origin: [
-            "http://localhost:5173",
-            "https://orbit-applications.vercel.app"
-        ],
+        origin: ['https://orbit-applications.vercel.app', 'http://localhost:5173'],
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allowedHeaders: [
