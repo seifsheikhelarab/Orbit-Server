@@ -13,8 +13,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     networks:
       - orbit-server
     restart: unless-stopped
@@ -35,22 +33,8 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:latest
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    networks:
-      - orbit-server
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
 volumes:
   postgres_data:
-  redis_data:
 
 networks:
   orbit-server:

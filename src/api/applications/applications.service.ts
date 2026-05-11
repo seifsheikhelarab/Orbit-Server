@@ -1,16 +1,6 @@
 import prisma from "../../utils/prisma.js";
 import { Prisma } from "../../generated/prisma/index.js";
 import { AppError, NotFoundError } from "../../utils/response.js";
-import {
-    cacheGet,
-    cacheSet,
-    cacheDelete,
-    cacheDeletePattern,
-    generateCacheKey
-} from "../../utils/cache.js";
-
-const APPLICATION_CACHE_TTL = 120;
-const DETAILS_CACHE_TTL = 300;
 
 export interface GetApplicationsParams {
     userId: string;
@@ -49,29 +39,6 @@ export async function getApplications(params: GetApplicationsParams) {
         const { userId, sort, order } = params;
         const page = params.page ?? 1;
         const limit = params.limit ?? 20;
-
-        const cacheKey = generateCacheKey(
-            "applications:list",
-            userId,
-            String(page),
-            String(limit),
-            params.search || "no-search",
-            params.status || "no-status",
-            params.sort || "no-sort"
-        );
-
-        if (page === 1) {
-            const cached = await cacheGet<{
-                applications: unknown[];
-                total: number;
-            }>(cacheKey);
-            if (cached) {
-                return {
-                    applications: cached.applications as never[],
-                    total: cached.total
-                };
-            }
-        }
 
         const where: Prisma.JobApplicationWhereInput = { userId };
 
@@ -155,14 +122,6 @@ export async function getApplications(params: GetApplicationsParams) {
 
         const total = await prisma.jobApplication.count({ where });
 
-        if (page === 1) {
-            await cacheSet(
-                cacheKey,
-                { applications, total },
-                APPLICATION_CACHE_TTL
-            );
-        }
-
         return { applications, total };
     } catch (error: unknown) {
         if (error instanceof AppError) throw error;
@@ -244,17 +203,6 @@ export async function getApplicationDetails(
     applicationId: string
 ) {
     try {
-        const cacheKey = generateCacheKey(
-            "applications:detail",
-            userId,
-            applicationId
-        );
-
-        const cached = await cacheGet<unknown>(cacheKey);
-        if (cached) {
-            return cached as never;
-        }
-
         const application = await prisma.jobApplication.findUnique({
             where: { id: applicationId, userId }
         });
@@ -262,8 +210,6 @@ export async function getApplicationDetails(
         if (!application) {
             throw new NotFoundError("Application not found");
         }
-
-        await cacheSet(cacheKey, application, DETAILS_CACHE_TTL);
 
         return application;
     } catch (error: unknown) {
@@ -284,8 +230,6 @@ export async function createApplication(
         const result = await prisma.jobApplication.create({
             data: { ...data, userId }
         });
-
-        await cacheDeletePattern(`applications:list:${userId}:*`);
 
         return result;
     } catch (error: unknown) {
@@ -328,11 +272,6 @@ export async function updateApplication(
             });
         }
 
-        await cacheDelete(
-            generateCacheKey("applications:detail", userId, applicationId)
-        );
-        await cacheDeletePattern(`applications:list:${userId}:*`);
-
         return result;
     } catch (error: unknown) {
         if (error instanceof AppError) throw error;
@@ -357,11 +296,6 @@ export async function deleteApplication(userId: string, applicationId: string) {
         const result = await prisma.jobApplication.delete({
             where: { id: applicationId }
         });
-
-        await cacheDelete(
-            generateCacheKey("applications:detail", userId, applicationId)
-        );
-        await cacheDeletePattern(`applications:list:${userId}:*`);
 
         return result;
     } catch (error: unknown) {
@@ -452,11 +386,6 @@ export async function bulkUpdateApplications(
         data: { applicationStatus: status as never }
     });
 
-    await cacheDeletePattern(`applications:list:${userId}:*`);
-    for (const id of ids) {
-        await cacheDelete(`applications:detail:${userId}:${id}`);
-    }
-
     return result;
 }
 
@@ -473,11 +402,6 @@ export async function bulkDeleteApplications(userId: string, ids: string[]) {
     const result = await prisma.jobApplication.deleteMany({
         where: { id: { in: ids } }
     });
-
-    await cacheDeletePattern(`applications:list:${userId}:*`);
-    for (const id of ids) {
-        await cacheDelete(`applications:detail:${userId}:${id}`);
-    }
 
     return result;
 }

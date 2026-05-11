@@ -33,7 +33,6 @@ Orbit Server is the backend API for Orbit, a job application tracker. It provide
 | PostgreSQL | Primary relational database |
 | Prisma | Type-safe ORM for database interactions |
 | Better Auth | Authentication and session management |
-| Redis | Caching and session performance optimization |
 | Zod | Schema validation for API requests |
 | Scalar | Interactive OpenAPI/Swagger documentation |
 | Pino | Structured JSON logging |
@@ -42,16 +41,13 @@ Orbit Server is the backend API for Orbit, a job application tracker. It provide
 
 - Bun >= 1.1
 - PostgreSQL >= 15
-- Redis (optional, for caching)
 
 ## Environment Variables
 
 Copy `.env.example` to `.env` and configure the required variables:
 
 ```env
-# Database & Redis
 DATABASE_URL=postgresql://user:pass@localhost:5432/orbit
-REDIS_URL=redis://localhost:6379
 
 # Auth
 BETTER_AUTH_SECRET=your-32-char-secret
@@ -126,7 +122,7 @@ src/
 ├── middlewares/  # Express middlewares (auth, error, validation)
 ├── services/     # External integrations (email)
 ├── jobs/         # Scheduled cron tasks
-├── utils/        # Shared helpers (prisma, redis, logger)
+├── utils/        # Shared helpers (prisma, logger)
 ├── app.ts        # Express app configuration
 └── index.ts      # Server entry point
 ```

@@ -25,7 +25,8 @@ export const auth = betterAuth({
         "orbitapp://",
         "exp://",
         "exp://**",
-        "exp://192.168.*.*:*/**"
+        "exp://192.168.*.*:*/**",
+        "http://localhost:8081"
     ],
     socialProviders: {
         google: {

@@ -4,7 +4,6 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./utils/auth.js";
 import logger from "./utils/logger.js";
 import prisma from "./utils/prisma.js";
-import { getRedisClient, disconnectRedis } from "./utils/redis.js";
 import cors from "cors";
 import {
     errorHandler,
@@ -34,7 +33,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 app.use(
     cors({
-        origin: ['https://orbit-applications.vercel.app', 'http://localhost:5173'],
+        origin: ['https://orbit-applications.vercel.app', 'http://localhost:5173', 'http://localhost:8081'],
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allowedHeaders: [
@@ -81,14 +80,7 @@ export async function startServer(): Promise<void> {
         await prisma.$queryRaw`SELECT 1`;
         logger.info("[Init] Database connected successfully");
 
-        try {
-            getRedisClient();
-            logger.info("[Init] Redis connected successfully");
-        } catch (redisErr) {
-            logger.warn(
-                `Redis connection failed (caching disabled): ${redisErr}`
-            );
-        }
+    
 
         const server = app.listen(port, async () => {
             logger.info(`[Init] Server running on http://localhost:${port}`);
@@ -100,7 +92,6 @@ export async function startServer(): Promise<void> {
             logger.info("SIGTERM received, shutting down gracefully...");
             server.close(async () => {
                 await prisma.$disconnect();
-                await disconnectRedis();
                 logger.info("Server closed");
                 process.exit(0);
             });
@@ -110,7 +101,6 @@ export async function startServer(): Promise<void> {
             logger.info("SIGINT received, shutting down gracefully...");
             server.close(async () => {
                 await prisma.$disconnect();
-                await disconnectRedis();
                 logger.info("Server closed");
                 process.exit(0);
             });
