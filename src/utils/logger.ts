@@ -1,6 +1,4 @@
 import { pino, type Logger } from "pino";
-import dotenv from "dotenv";
-dotenv.config({ quiet: true });
 
 /**
  * Pino logger configuration.

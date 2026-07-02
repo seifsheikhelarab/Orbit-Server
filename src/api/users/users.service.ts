@@ -1,6 +1,6 @@
 import prisma from "../../utils/prisma.js";
 import { auth } from "../../utils/auth.js";
-import { AppError, NotFoundError } from "../../utils/response.js";
+import { AppError, HttpStatus, ErrorCode } from "../../utils/response.js";
 
 export async function getCurrentUser(userId: string) {
     const user = await prisma.user.findUnique({
@@ -20,7 +20,7 @@ export async function getCurrentUser(userId: string) {
     });
 
     if (!user) {
-        throw new NotFoundError("User not found");
+        throw new AppError("User not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return user;
@@ -41,7 +41,7 @@ export async function updateCurrentUser(
     });
 
     if (!user) {
-        throw new NotFoundError("User not found");
+        throw new AppError("User not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return prisma.user.update({
@@ -104,7 +104,7 @@ export async function deleteAccount(userId: string) {
     });
 
     if (!user) {
-        throw new NotFoundError("User not found");
+        throw new AppError("User not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     await prisma.user.delete({

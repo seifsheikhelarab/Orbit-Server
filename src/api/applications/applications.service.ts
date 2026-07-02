@@ -1,6 +1,6 @@
 import prisma from "../../utils/prisma.js";
 import { Prisma } from "../../generated/prisma/index.js";
-import { AppError, NotFoundError } from "../../utils/response.js";
+import { AppError, HttpStatus, ErrorCode } from "../../utils/response.js";
 
 export interface GetApplicationsParams {
     userId: string;
@@ -208,7 +208,7 @@ export async function getApplicationDetails(
         });
 
         if (!application) {
-            throw new NotFoundError("Application not found");
+            throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
         }
 
         return application;
@@ -252,7 +252,7 @@ export async function updateApplication(
         });
 
         if (!existing) {
-            throw new NotFoundError("Application not found");
+            throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
         }
 
         const newStatus = (data.applicationStatus as unknown as { toString(): string })?.toString();
@@ -290,7 +290,7 @@ export async function deleteApplication(userId: string, applicationId: string) {
         });
 
         if (!existing) {
-            throw new NotFoundError("Application not found");
+            throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
         }
 
         const result = await prisma.jobApplication.delete({
@@ -412,7 +412,7 @@ export async function getStatusHistory(userId: string, applicationId: string) {
     });
 
     if (!application) {
-        throw new NotFoundError("Application not found");
+        throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return prisma.statusHistory.findMany({
@@ -435,7 +435,7 @@ export async function getContacts(userId: string, applicationId: string) {
     });
 
     if (!application) {
-        throw new NotFoundError("Application not found");
+        throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return prisma.contact.findMany({
@@ -454,7 +454,7 @@ export async function createContact(
     });
 
     if (!application) {
-        throw new NotFoundError("Application not found");
+        throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return prisma.contact.create({
@@ -476,7 +476,7 @@ export async function updateContact(
     });
 
     if (!application) {
-        throw new NotFoundError("Application not found");
+        throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     const contact = await prisma.contact.findFirst({
@@ -484,7 +484,7 @@ export async function updateContact(
     });
 
     if (!contact) {
-        throw new NotFoundError("Contact not found");
+        throw new AppError("Contact not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return prisma.contact.update({
@@ -503,7 +503,7 @@ export async function deleteContact(
     });
 
     if (!application) {
-        throw new NotFoundError("Application not found");
+        throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     const contact = await prisma.contact.findFirst({
@@ -511,7 +511,7 @@ export async function deleteContact(
     });
 
     if (!contact) {
-        throw new NotFoundError("Contact not found");
+        throw new AppError("Contact not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return prisma.contact.delete({
@@ -533,7 +533,7 @@ export async function getInterviewRounds(userId: string, applicationId: string) 
     });
 
     if (!application) {
-        throw new NotFoundError("Application not found");
+        throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return prisma.interviewRound.findMany({
@@ -552,7 +552,7 @@ export async function createInterviewRound(
     });
 
     if (!application) {
-        throw new NotFoundError("Application not found");
+        throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return prisma.interviewRound.create({
@@ -578,7 +578,7 @@ export async function updateInterviewRound(
     });
 
     if (!application) {
-        throw new NotFoundError("Application not found");
+        throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     const round = await prisma.interviewRound.findFirst({
@@ -586,7 +586,7 @@ export async function updateInterviewRound(
     });
 
     if (!round) {
-        throw new NotFoundError("Interview round not found");
+        throw new AppError("Interview round not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return prisma.interviewRound.update({
@@ -611,7 +611,7 @@ export async function deleteInterviewRound(
     });
 
     if (!application) {
-        throw new NotFoundError("Application not found");
+        throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     const round = await prisma.interviewRound.findFirst({
@@ -619,7 +619,7 @@ export async function deleteInterviewRound(
     });
 
     if (!round) {
-        throw new NotFoundError("Interview round not found");
+        throw new AppError("Interview round not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return prisma.interviewRound.delete({

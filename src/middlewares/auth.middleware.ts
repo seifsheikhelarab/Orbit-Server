@@ -1,6 +1,6 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { auth } from "../utils/auth.js";
-import { AuthenticationError } from "../utils/response.js";
+import { AppError, HttpStatus, ErrorCode } from "../utils/response.js";
 import { asyncHandler } from "./error.middleware.js";
 import { fromNodeHeaders } from "better-auth/node";
 
@@ -33,9 +33,7 @@ export const protect = asyncHandler<AuthenticatedRequest>(
         });
 
         if (!session) {
-            throw new AuthenticationError(
-                "Authentication required. Please log in."
-            );
+            throw new AppError("Authentication required. Please log in.", HttpStatus.UNAUTHORIZED, ErrorCode.INVALID_CREDENTIALS);
         }
 
         req.user = session.user;

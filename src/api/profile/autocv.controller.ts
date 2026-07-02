@@ -1,7 +1,7 @@
 import { type Response } from "express";
 import { geminiService } from "../../services/ai/gemini.service.js";
 import prisma from "../../utils/prisma.js";
-import { ResponseHandler, HttpStatus, AppError, ErrorCode } from "../../utils/response.js";
+import { success, created, AppError, HttpStatus, ErrorCode } from "../../utils/response.js";
 
 export const autoCvController = {
   async generate(req: any, res: Response) {
@@ -24,7 +24,7 @@ export const autoCvController = {
         geminiService.generateTailoredDocs(profile.content, jobDescription)
       ]);
 
-      return ResponseHandler.success(res, "Generated tailored content successfully", HttpStatus.OK, {
+      return success(res, "Generated tailored content successfully", HttpStatus.OK, {
         jobData,
         tailoredContent
       });
@@ -84,7 +84,7 @@ export const autoCvController = {
         ]
       });
 
-      return ResponseHandler.success(res, "Application and tailored documents saved successfully", HttpStatus.CREATED, { application, resume, coverLetter });
+      return success(res, "Application and tailored documents saved successfully", HttpStatus.CREATED, { application, resume, coverLetter });
     } catch (error) {
       throw error;
     }

@@ -1,6 +1,6 @@
 import { type Response } from "express";
 import prisma from "../../utils/prisma.js";
-import { ResponseHandler, HttpStatus } from "../../utils/response.js";
+import { success, HttpStatus } from "../../utils/response.js";
 
 export const profileController = {
   async getProfile(req: any, res: Response) {
@@ -9,7 +9,7 @@ export const profileController = {
       const profile = await prisma.userProfileData.findUnique({
         where: { userId }
       });
-      return ResponseHandler.success(res, "Profile fetched successfully", HttpStatus.OK, profile);
+      return success(res, "Profile fetched successfully", HttpStatus.OK, profile);
     } catch (error) {
       throw error;
     }
@@ -26,7 +26,7 @@ export const profileController = {
         create: { userId, content }
       });
       
-      return ResponseHandler.success(res, "Profile updated successfully", HttpStatus.OK, profile);
+      return success(res, "Profile updated successfully", HttpStatus.OK, profile);
     } catch (error) {
       throw error;
     }

@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import { asyncHandler } from "../../middlewares/error.middleware.js";
-import { ResponseHandler, HttpStatus } from "../../utils/response.js";
+import { success, paginated, HttpStatus } from "../../utils/response.js";
 import * as ResumesService from "./resumes.service.js";
 import type { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
 import type { GetResumesQuery, AttachResumeInput } from "./resumes.schemas.js";
@@ -13,7 +13,7 @@ export const getResumes = asyncHandler(
             query
         );
 
-        ResponseHandler.paginated(
+        paginated(
             res,
             resumes,
             "Resumes retrieved successfully",
@@ -32,7 +32,7 @@ export const getResumeById = asyncHandler(
             req.params.id as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Resume retrieved successfully",
             HttpStatus.OK,
@@ -49,7 +49,7 @@ export const createResume = asyncHandler(
             req.body
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Resume created successfully",
             HttpStatus.CREATED,
@@ -67,7 +67,7 @@ export const updateResume = asyncHandler(
             req.body
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Resume updated successfully",
             HttpStatus.OK,
@@ -84,7 +84,7 @@ export const deleteResume = asyncHandler(
             req.params.id as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Resume deleted successfully",
             HttpStatus.OK,
@@ -102,7 +102,7 @@ export const attachResumeToApplication = asyncHandler(
             (req.body as AttachResumeInput).applicationId
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Resume attached to application",
             HttpStatus.CREATED,

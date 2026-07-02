@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import { asyncHandler } from "../../middlewares/error.middleware.js";
-import { ResponseHandler } from "../../utils/response.js";
+import { success } from "../../utils/response.js";
 import type { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
 import { analyticsQuerySchema } from "./analytics.schemas.js";
 import * as AnalyticsService from "./analytics.service.js";
@@ -12,7 +12,7 @@ export const getSummary = asyncHandler(
 
         const stats = await AnalyticsService.getSummaryStats(req.user.id, query);
 
-        ResponseHandler.success(
+        success(
             res,
             "Summary stats retrieved successfully",
             200,
@@ -32,7 +32,7 @@ export const getApplicationsOverTime = asyncHandler(
             query
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Applications over time retrieved successfully",
             200,
@@ -49,7 +49,7 @@ export const getPipelineFunnel = asyncHandler(
 
         const data = await AnalyticsService.getPipelineFunnel(req.user.id, query);
 
-        ResponseHandler.success(
+        success(
             res,
             "Pipeline funnel retrieved successfully",
             200,
@@ -63,7 +63,7 @@ export const getStatusBreakdown = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
         const data = await AnalyticsService.getStatusBreakdown(req.user.id);
 
-        ResponseHandler.success(
+        success(
             res,
             "Status breakdown retrieved successfully",
             200,
@@ -83,7 +83,7 @@ export const getResponseRateTrend = asyncHandler(
             query
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Response rate trend retrieved successfully",
             200,
@@ -97,7 +97,7 @@ export const getTopLocations = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
         const data = await AnalyticsService.getTopLocations(req.user.id);
 
-        ResponseHandler.success(
+        success(
             res,
             "Top locations retrieved successfully",
             200,
@@ -111,7 +111,7 @@ export const getSourceBreakdown = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
         const data = await AnalyticsService.getSourceBreakdown(req.user.id);
 
-        ResponseHandler.success(
+        success(
             res,
             "Source breakdown retrieved successfully",
             200,
@@ -125,7 +125,7 @@ export const getRecentActivity = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
         const data = await AnalyticsService.getRecentActivity(req.user.id);
 
-        ResponseHandler.success(
+        success(
             res,
             "Recent activity retrieved successfully",
             200,
@@ -139,7 +139,7 @@ export const getPipelineFlow = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
         const data = await AnalyticsService.getPipelineFlow(req.user.id);
 
-        ResponseHandler.success(
+        success(
             res,
             "Pipeline flow retrieved successfully",
             200,

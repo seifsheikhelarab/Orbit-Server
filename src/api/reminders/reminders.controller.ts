@@ -1,11 +1,7 @@
 import type { Response } from "express";
 import { asyncHandler } from "../../middlewares/error.middleware.js";
 import * as RemindersService from "./reminders.service.js";
-import {
-    ResponseHandler,
-    HttpStatus,
-    ErrorCode
-} from "../../utils/response.js";
+import { success, error as sendError, HttpStatus, ErrorCode } from "../../utils/response.js";
 import type { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
 
 export const clearReminder = asyncHandler(
@@ -13,7 +9,7 @@ export const clearReminder = asyncHandler(
         const applicationId = req.params.id as string;
         await RemindersService.clearReminder(applicationId, req.user.id);
 
-        ResponseHandler.success(
+        success(
             res,
             "Reminder cleared",
             HttpStatus.OK,
@@ -28,7 +24,7 @@ export const handleReminderAction = asyncHandler(
         const { token, action } = req.query;
 
         if (!token || !action) {
-            ResponseHandler.error(
+            sendError(
                 res,
                 "Token and action are required",
                 ErrorCode.INVALID_INPUT,
@@ -42,7 +38,7 @@ export const handleReminderAction = asyncHandler(
             action as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             result.message,
             HttpStatus.OK,

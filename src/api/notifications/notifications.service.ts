@@ -1,5 +1,5 @@
 import prisma from "../../utils/prisma.js";
-import { AppError } from "../../utils/response.js";
+import { AppError, HttpStatus, ErrorCode } from "../../utils/response.js";
 
 export interface GetNotificationsOptions {
     userId: string;
@@ -64,7 +64,7 @@ export async function markAsRead(notificationId: string, userId: string) {
     });
 
     if (!notification) {
-        throw new AppError("Notification not found", 404, "NOT_FOUND");
+        throw new AppError("Notification not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     return prisma.notification.update({
@@ -91,7 +91,7 @@ export async function snoozeNotification(
     });
 
     if (!notification || !notification.applicationId) {
-        throw new AppError("Notification not found", 404, "NOT_FOUND");
+        throw new AppError("Notification not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     const newFollowUpDate = new Date();
@@ -118,7 +118,7 @@ export async function dismissNotification(
     });
 
     if (!notification || !notification.applicationId) {
-        throw new AppError("Notification not found", 404, "NOT_FOUND");
+        throw new AppError("Notification not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
     }
 
     await prisma.$transaction([

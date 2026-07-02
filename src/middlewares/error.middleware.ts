@@ -1,10 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import {
-    ResponseHandler,
-    AppError,
-    ErrorCode,
-    HttpStatus
-} from "../utils/response.js";
+import { error as sendError, AppError, ErrorCode, HttpStatus } from "../utils/response.js";
 import logger from "../utils/logger.js";
 import type { ZodError } from "zod";
 
@@ -31,7 +26,7 @@ export const errorHandler = (
         logger.error(
             `[${err.code}] ${err.message} - Code: ${err.code} - Path: ${path} - Time: ${timestamp}`
         );
-        return ResponseHandler.error(
+        return sendError(
             res,
             err.message,
             err.code as ErrorCode,
@@ -56,7 +51,7 @@ export const errorHandler = (
         );
 
         logger.warn(`Validation error - Path: ${path}`);
-        return ResponseHandler.error(
+        return sendError(
             res,
             "Validation failed",
             ErrorCode.VALIDATION_ERROR,
@@ -68,15 +63,7 @@ export const errorHandler = (
 
     // Handle generic errors
     logger.error(`Unhandled error: ${err.message} - Stack: ${err.stack}`);
-    return ResponseHandler.error(
-        res,
-        process.env.NODE_ENV === "production"
-            ? "An error occurred"
-            : err.message,
-        ErrorCode.SERVER_ERROR,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        path
-    );
+    return sendError(res, process.env.NODE_ENV === "production" ? "An error occurred" : err.message, ErrorCode.SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR, path);
 };
 
 /**
@@ -87,13 +74,7 @@ export const errorHandler = (
  */
 export const notFoundHandler = (req: Request, res: Response) => {
     const path = `${req.method} ${req.path}`;
-    ResponseHandler.error(
-        res,
-        `Route ${path} not found`,
-        ErrorCode.RESOURCE_NOT_FOUND,
-        HttpStatus.NOT_FOUND,
-        path
-    );
+    sendError(res, `Route ${path} not found`, ErrorCode.RESOURCE_NOT_FOUND, HttpStatus.NOT_FOUND, path);
     logger.error(`path ${path} not found`);
 };
 

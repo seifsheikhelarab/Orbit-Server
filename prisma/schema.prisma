@@ -222,12 +222,6 @@ model InterviewRound {
   @@map("interview_round")
 }
 
-enum locationType {
-  remote
-  hybrid
-  onsite
-}
-
 enum applicationStatusType {
   SAVED
   APPLIED
@@ -235,37 +229,6 @@ enum applicationStatusType {
   INTERVIEW
   OFFER
   CLOSED
-}
-
-enum jobType {
-  fulltime
-  parttime
-  internship
-}
-
-enum priorityType {
-  low
-  medium
-  high
-}
-
-enum roundType {
-  phoneScreening
-  hrInterview
-  technical
-  panelInterview
-  finalRound
-}
-
-enum interviewType {
-  online
-  offline
-}
-
-enum resultType {
-  pending
-  passed
-  failed
 }
 
 enum resumeType {

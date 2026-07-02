@@ -6,9 +6,8 @@ import {
     getApplicationsResumeCounts,
     getResumesForApplication
 } from "../resumes/resumes.service.js";
-import { ResponseHandler, ErrorCode } from "../../utils/response.js";
+import { error as sendError, success, paginated, created, AppError, HttpStatus, ErrorCode } from "../../utils/response.js";
 import { getPagination } from "../../utils/pages.js";
-import { HttpStatus } from "../../utils/response.js";
 import type { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
 import { getApplicationsQuerySchema } from "./applications.schemas.js";
 
@@ -45,7 +44,7 @@ export const getApplications = asyncHandler(
             order: parsedQuery.order
         });
 
-        ResponseHandler.paginated(
+        paginated(
             res,
             result.applications,
             "Applications retrieved successfully",
@@ -64,7 +63,7 @@ export const createApplication = asyncHandler(
             req.body
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Application created successfully",
             HttpStatus.CREATED,
@@ -81,7 +80,7 @@ export const getApplicationDetails = asyncHandler(
             req.params.id as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Application retrieved successfully",
             HttpStatus.OK,
@@ -99,7 +98,7 @@ export const updateApplication = asyncHandler(
             req.body
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Application updated successfully",
             HttpStatus.OK,
@@ -116,7 +115,7 @@ export const deleteApplication = asyncHandler(
             req.params.id as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Application deleted successfully",
             HttpStatus.OK,
@@ -131,7 +130,7 @@ export const getApplicationDocumentCountsHandler = asyncHandler(
         const applicationIds = req.query.ids as string;
 
         if (!applicationIds) {
-            ResponseHandler.success(
+            success(
                 res,
                 "Document counts retrieved successfully",
                 HttpStatus.OK,
@@ -144,7 +143,7 @@ export const getApplicationDocumentCountsHandler = asyncHandler(
         const ids = applicationIds.split(",");
         const counts = await getApplicationsResumeCounts(req.user.id, ids);
 
-        ResponseHandler.success(
+        success(
             res,
             "Document counts retrieved successfully",
             HttpStatus.OK,
@@ -161,7 +160,7 @@ export const getApplicationResumes = asyncHandler(
             req.params.id as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Application resumes retrieved successfully",
             HttpStatus.OK,
@@ -179,7 +178,7 @@ export const detachApplicationResume = asyncHandler(
             req.params.id as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Resume detached from application",
             HttpStatus.OK,
@@ -245,7 +244,7 @@ export const bulkUpdateApplications = asyncHandler(
         const { ids, status } = req.body;
 
         if (!Array.isArray(ids) || ids.length === 0) {
-            return ResponseHandler.error(
+            return sendError(
                 res,
                 "ids must be a non-empty array",
                 ErrorCode.VALIDATION_ERROR,
@@ -260,7 +259,7 @@ export const bulkUpdateApplications = asyncHandler(
             status
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Applications updated successfully",
             HttpStatus.OK,
@@ -275,7 +274,7 @@ export const bulkDeleteApplications = asyncHandler(
         const { ids } = req.body;
 
         if (!Array.isArray(ids) || ids.length === 0) {
-            return ResponseHandler.error(
+            return sendError(
                 res,
                 "ids must be a non-empty array",
                 ErrorCode.VALIDATION_ERROR,
@@ -289,7 +288,7 @@ export const bulkDeleteApplications = asyncHandler(
             ids
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Applications deleted successfully",
             HttpStatus.OK,
@@ -313,7 +312,7 @@ export const getAllApplicationIds = asyncHandler(
             ...parsedQuery
         });
 
-        ResponseHandler.success(
+        success(
             res,
             "Application IDs retrieved successfully",
             HttpStatus.OK,
@@ -330,7 +329,7 @@ export const getStatusHistory = asyncHandler(
             req.params.id as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Status history retrieved successfully",
             HttpStatus.OK,
@@ -347,7 +346,7 @@ export const getContacts = asyncHandler(
             req.params.id as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Contacts retrieved successfully",
             HttpStatus.OK,
@@ -365,7 +364,7 @@ export const createContact = asyncHandler(
             req.body
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Contact created successfully",
             HttpStatus.CREATED,
@@ -384,7 +383,7 @@ export const updateContact = asyncHandler(
             req.body
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Contact updated successfully",
             HttpStatus.OK,
@@ -402,7 +401,7 @@ export const deleteContact = asyncHandler(
             req.params.contactId as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Contact deleted successfully",
             HttpStatus.OK,
@@ -419,7 +418,7 @@ export const getInterviewRounds = asyncHandler(
             req.params.id as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Interview rounds retrieved successfully",
             HttpStatus.OK,
@@ -437,7 +436,7 @@ export const createInterviewRound = asyncHandler(
             req.body
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Interview round created successfully",
             HttpStatus.CREATED,
@@ -456,7 +455,7 @@ export const updateInterviewRound = asyncHandler(
             req.body
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Interview round updated successfully",
             HttpStatus.OK,
@@ -474,7 +473,7 @@ export const deleteInterviewRound = asyncHandler(
             req.params.roundId as string
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Interview round deleted successfully",
             HttpStatus.OK,
@@ -490,7 +489,7 @@ export const getUpcomingInterviews = asyncHandler(
             req.user.id
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Upcoming interviews retrieved successfully",
             HttpStatus.OK,

@@ -62,206 +62,43 @@ export interface ErrorResponse {
     details?: Record<string, unknown>;
 }
 
-export class ResponseHandler {
-    /**
-     * Send a standardized success response.
-     *
-     * @param res Express response object.
-     * @param message Human-readable success message.
-     * @param status HTTP status code to send.
-     * @param data Optional response payload.
-     * @param path Optional request path metadata.
-     * @returns The serialized success response.
-     */
-    static success<T>(
-        res: Response,
-        message: string,
-        status: HttpStatus,
-        data?: T,
-        path?: string
-    ): Response {
-        const response: SuccessResponse<T> = {
-            message,
-            data,
-            timestamp: new Date(),
-            path
-        };
+export function success<T>(res: Response, message: string, status: HttpStatus, data?: T, path?: string): Response {
+    return res.status(status).json({ message, data, timestamp: new Date(), path });
+}
 
-        logger.info(`[SUCCESS]: ${message} - Path: ${path}`);
-        return res.status(status).json(response);
-    }
+export function error(
+    res: Response,
+    message: string,
+    code: ErrorCode,
+    status: HttpStatus,
+    path?: string,
+    details?: Record<string, unknown>
+): Response {
+    return res.status(status).json({ message, code, status, timestamp: new Date(), path, details });
+}
 
-    /**
-     * Send a standardized error response.
-     *
-     * @param res Express response object.
-     * @param message Human-readable error message.
-     * @param code Application-specific error code.
-     * @param status HTTP status code to send.
-     * @param path Optional request path metadata.
-     * @param details Optional structured error details.
-     * @returns The serialized error response.
-     */
-    static error(
-        res: Response,
-        message: string,
-        code: ErrorCode,
-        status: HttpStatus,
-        path?: string,
-        details?: Record<string, unknown>
-    ): Response {
-        const response: ErrorResponse = {
-            message,
-            code,
-            status,
-            timestamp: new Date(),
-            path,
-            details
-        };
-        logger.error(
-            `[ERROR] ${message} - Code: ${code} - Status: ${status} - Path: ${path || "N/A"}`
-        );
-        return res.status(status).json(response);
-    }
+export function paginated<T>(res: Response, data: T[], message: string, page: number, limit: number, total: number, path?: string): Response {
+    return res.status(HttpStatus.OK).json({
+        success: true, message, data,
+        pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+        timestamp: new Date().toISOString(), path
+    });
+}
 
-    /**
-     * Send a paginated success response with paging metadata.
-     *
-     * @param res Express response object.
-     * @param data List of items for the current page.
-     * @param message Human-readable success message.
-     * @param page Current page number.
-     * @param limit Maximum items per page.
-     * @param total Total number of items across all pages.
-     * @param path Optional request path metadata.
-     * @returns The serialized paginated response.
-     */
-    static paginated<T>(
-        res: Response,
-        data: T[],
-        message: string,
-        page: number,
-        limit: number,
-        total: number,
-        path?: string
-    ): Response {
-        const response = {
-            success: true,
-            message,
-            data,
-            pagination: {
-                page,
-                limit,
-                total,
-                pages: Math.ceil(total / limit)
-            },
-            timestamp: new Date().toISOString(),
-            path
-        };
-
-        logger.info(
-            `[PAGINATED] ${message} - Page: ${page}, Total: ${total} - Path: ${path || "N/A"}`
-        );
-
-        return res.status(HttpStatus.OK).json(response);
-    }
-
-    /**
-     * Send a created response using the standard success envelope.
-     *
-     * @param res Express response object.
-     * @param message Human-readable creation message.
-     * @param data Created resource payload.
-     * @param path Optional request path metadata.
-     * @returns The serialized created response.
-     */
-    static created<T>(
-        res: Response,
-        message: string,
-        data: T,
-        path?: string
-    ): Response {
-        return this.success(res, message, HttpStatus.CREATED, data, path);
-    }
+export function created<T>(res: Response, message: string, data: T, path?: string): Response {
+    return success(res, message, HttpStatus.CREATED, data, path);
 }
 
 export class AppError extends Error {
-    public status: HttpStatus;
-    public code: ErrorCode | string;
-    public details?: Record<string, unknown>;
-
-    /**
-     * Create a typed application error with HTTP metadata.
-     *
-     * @param message Human-readable error message.
-     * @param status HTTP status associated with the error.
-     * @param code Application-specific error code.
-     * @param details Optional structured details for debugging or clients.
-     */
     constructor(
         message: string,
-        status: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
-        code: ErrorCode | string = ErrorCode.SERVER_ERROR,
-        details?: Record<string, unknown>
+        public status: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
+        public code: ErrorCode | string = ErrorCode.SERVER_ERROR,
+        public details?: Record<string, unknown>
     ) {
         super(message);
-        this.status = status;
-        this.code = code;
-        this.details = details;
         Object.setPrototypeOf(this, AppError.prototype);
     }
 }
 
-export class AuthenticationError extends AppError {
-    /**
-     * Create an authentication-specific application error.
-     *
-     * @param message Human-readable authentication error message.
-     * @param status HTTP status associated with authentication failures.
-     * @param code Application-specific authentication error code.
-     */
-    constructor(
-        message: string = "Invalid credentials",
-        status: HttpStatus = HttpStatus.UNAUTHORIZED,
-        code: ErrorCode = ErrorCode.INVALID_CREDENTIALS
-    ) {
-        super(message, status, code);
-        Object.setPrototypeOf(this, AuthenticationError.prototype);
-    }
-}
 
-export class AuthorizationError extends AppError {
-    /**
-     * Create an authorization-specific application error.
-     *
-     * @param message Human-readable authorization error message.
-     * @param status HTTP status associated with authorization failures.
-     * @param code Application-specific authorization error code.
-     */
-    constructor(
-        message: string = "Insufficient permissions",
-        status: HttpStatus = HttpStatus.FORBIDDEN,
-        code: ErrorCode = ErrorCode.INVALID_INPUT
-    ) {
-        super(message, status, code);
-        Object.setPrototypeOf(this, AuthorizationError.prototype);
-    }
-}
-
-export class NotFoundError extends AppError {
-    /**
-     * Create a resource-not-found application error.
-     *
-     * @param message Human-readable not-found error message.
-     * @param status HTTP status associated with missing resources.
-     * @param code Application-specific not-found error code.
-     */
-    constructor(
-        message: string = "Resource not found",
-        status: HttpStatus = HttpStatus.NOT_FOUND,
-        code: ErrorCode = ErrorCode.RESOURCE_NOT_FOUND
-    ) {
-        super(message, status, code);
-        Object.setPrototypeOf(this, NotFoundError.prototype);
-    }
-}

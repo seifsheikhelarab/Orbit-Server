@@ -11,7 +11,6 @@ import {
 } from "./middlewares/error.middleware.js";
 import apiRouter from "./api/index.js";
 import { apiReference } from "@scalar/express-api-reference";
-import { generateOpenAPISpec } from "./utils/openapi.js";
 import { rateLimit } from "express-rate-limit";
 
 /**
@@ -41,7 +40,12 @@ app.use(
 app.use(
     "/docs",
     apiReference({
-        content: generateOpenAPISpec()
+        content: {
+            openapi: "3.0.0",
+            info: { title: "Orbit API", description: "API for managing job applications, documents, and authentication", version: "1.0.0" },
+            servers: [{ url: "http://localhost:5726", description: "Development server" }],
+            paths: {}
+        }
     })
 );
 
@@ -82,23 +86,16 @@ export async function startServer(): Promise<void> {
             // initJobs();
         });
 
-        process.on("SIGTERM", async () => {
-            logger.info("SIGTERM received, shutting down gracefully...");
+        const shutdown = async (signal: string) => {
+            logger.info(`${signal} received, shutting down gracefully...`);
             server.close(async () => {
                 await prisma.$disconnect();
                 logger.info("Server closed");
                 process.exit(0);
             });
-        });
-
-        process.on("SIGINT", async () => {
-            logger.info("SIGINT received, shutting down gracefully...");
-            server.close(async () => {
-                await prisma.$disconnect();
-                logger.info("Server closed");
-                process.exit(0);
-            });
-        });
+        };
+        process.on("SIGTERM", () => shutdown("SIGTERM"));
+        process.on("SIGINT", () => shutdown("SIGINT"));
     } catch (err) {
         logger.error(`Failed to start server: ${err}`);
         process.exit(1);

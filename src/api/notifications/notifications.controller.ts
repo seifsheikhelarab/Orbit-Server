@@ -1,8 +1,7 @@
 import type { Response } from "express";
 import { asyncHandler } from "../../middlewares/error.middleware.js";
 import * as NotificationsService from "./notifications.service.js";
-import { ResponseHandler } from "../../utils/response.js";
-import { HttpStatus } from "../../utils/response.js";
+import { success, paginated, HttpStatus } from "../../utils/response.js";
 import type { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
 
 export const getNotifications = asyncHandler(
@@ -19,7 +18,7 @@ export const getNotifications = asyncHandler(
                 unreadOnly
             });
 
-        ResponseHandler.paginated(
+        paginated(
             res,
             notifications,
             "Notifications retrieved successfully",
@@ -35,7 +34,7 @@ export const getUnreadCount = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
         const count = await NotificationsService.getUnreadCount(req.user.id);
 
-        ResponseHandler.success(
+        success(
             res,
             "Unread count retrieved successfully",
             HttpStatus.OK,
@@ -50,7 +49,7 @@ export const markAsRead = asyncHandler(
         const notificationId = req.params.id as string;
         await NotificationsService.markAsRead(notificationId, req.user.id);
 
-        ResponseHandler.success(
+        success(
             res,
             "Notification marked as read",
             HttpStatus.OK,
@@ -64,7 +63,7 @@ export const markAllAsRead = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
         await NotificationsService.markAllAsRead(req.user.id);
 
-        ResponseHandler.success(
+        success(
             res,
             "All notifications marked as read",
             HttpStatus.OK,
@@ -85,7 +84,7 @@ export const snoozeNotification = asyncHandler(
             days
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Notification snoozed",
             HttpStatus.OK,
@@ -103,7 +102,7 @@ export const dismissNotification = asyncHandler(
             req.user.id
         );
 
-        ResponseHandler.success(
+        success(
             res,
             "Notification dismissed",
             HttpStatus.OK,

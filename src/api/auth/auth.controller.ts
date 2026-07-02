@@ -1,11 +1,7 @@
 import { asyncHandler } from "./../../middlewares/error.middleware.js";
 import { type Request, type Response } from "express";
-import { AuthService } from "./auth.service.js";
-import {
-    ResponseHandler,
-    HttpStatus,
-    AuthenticationError
-} from "../../utils/response.js";
+import * as Auth from "./auth.service.js";
+import { success, created, AppError, HttpStatus, ErrorCode } from "../../utils/response.js";
 
 /**
  * Register a new user account.
@@ -16,9 +12,9 @@ import {
  */
 export const handleSignUp = asyncHandler(
     async (req: Request, res: Response) => {
-        const result = await AuthService.signUp(req.body);
+        const result = await Auth.signUp(req.body);
 
-        return ResponseHandler.created(
+        return created(
             res,
             "User registered successfully",
             result,
@@ -36,15 +32,9 @@ export const handleSignUp = asyncHandler(
  */
 export const handleSignIn = asyncHandler(
     async (req: Request, res: Response) => {
-        const result = await AuthService.signIn(req.body);
+        const result = await Auth.signIn(req.body);
 
-        return ResponseHandler.success(
-            res,
-            "Login successful",
-            HttpStatus.OK,
-            result,
-            req.originalUrl
-        );
+        return success(res, "Login successful", HttpStatus.OK, result, req.originalUrl);
     }
 );
 
@@ -57,15 +47,9 @@ export const handleSignIn = asyncHandler(
  */
 export const handleSignOut = asyncHandler(
     async (req: Request, res: Response) => {
-        await AuthService.signOut(req.headers);
+        await Auth.signOut(req.headers);
 
-        return ResponseHandler.success(
-            res,
-            "Logout successful",
-            HttpStatus.OK,
-            null,
-            req.originalUrl
-        );
+        return success(res, "Logout successful", HttpStatus.OK, null, req.originalUrl);
     }
 );
 
@@ -75,20 +59,14 @@ export const handleSignOut = asyncHandler(
  * @param req Express request containing authentication headers.
  * @param res Express response used to return session data.
  * @returns A success response with the current session.
- * @throws AuthenticationError When no active session exists.
+ * @throws AppError When no active session exists.
  */
 export const handleGetMe = asyncHandler(async (req: Request, res: Response) => {
-    const session = await AuthService.getSession(req.headers);
+    const session = await Auth.getSession(req.headers);
 
     if (!session) {
-        throw new AuthenticationError("No active session found");
+        throw new AppError("No active session found", HttpStatus.UNAUTHORIZED, ErrorCode.INVALID_CREDENTIALS);
     }
 
-    return ResponseHandler.success(
-        res,
-        "Current user session retrieved",
-        HttpStatus.OK,
-        session,
-        req.originalUrl
-    );
+    return success(res, "Current user session retrieved", HttpStatus.OK, session, req.originalUrl);
 });
