@@ -69,14 +69,34 @@ export class GeminiService {
         if (GEMINI_API_KEY === "PLACEHOLDER") {
             return {
                 resumeContent: {
-                    ...profileData,
+                    settings: { template: "modern", color: "#1e3a8a", fontSize: "medium", lineSpacing: "normal", margin: "normal" },
                     basics: {
-                        ...profileData.basics,
-                        summary: "Tailored AI Summary..."
-                    }
+                        ...(profileData?.basics || {}),
+                        label: profileData?.basics?.label || "Target Role",
+                        summary: "Tailored professional summary highlighting relevant experience for this role.",
+                        profiles: []
+                    },
+                    work: (profileData?.work || []).map((w: any) => ({ ...w })),
+                    education: (profileData?.education || []).map((e: any) => ({ ...e })),
+                    skills: (profileData?.skills || []).map((s: any) => ({ ...s })),
+                    projects: (profileData?.projects || []).map((p: any) => ({ ...p })),
+                    volunteer: (profileData?.volunteer || []).map((v: any) => ({ ...v })),
+                    languages: (profileData?.languages || []).map((l: any) => ({ ...l })),
+                    certifications: (profileData?.certifications || []).map((c: any) => ({ ...c })),
                 },
-                coverLetter:
-                    "Dear Hiring Manager,\n\nI am writing to express my interest..."
+                coverLetter: {
+                    senderName: profileData?.basics?.name || "Your Name",
+                    recipientName: "Hiring Manager",
+                    recipientTitle: "",
+                    company: "Example Corp",
+                    address: "",
+                    email: "",
+                    opening: "I am writing to express my enthusiastic interest in the open position at Example Corp.",
+                    body: "With my background in software development and passion for building great products, I believe I would be a strong addition to your team.",
+                    closing: "Thank you for considering my application. I look forward to the opportunity to discuss how I can contribute to your team's success.",
+                    signature: "Best regards,",
+                    jobPostingUrl: ""
+                }
             };
         }
 
@@ -87,55 +107,100 @@ export class GeminiService {
         OUTPUT SCHEMA (strict JSON):
         {
           "resumeContent": {
+            "settings": {
+              "template": "modern",
+              "color": "#1e3a8a",
+              "fontSize": "medium",
+              "lineSpacing": "normal",
+              "margin": "normal"
+            },
             "basics": {
-              "name": "string",
+              "name": "string (user's full name)",
+              "label": "string (target job title)",
               "email": "string",
               "phone": "string",
-              "location": "string",
               "url": "string",
-              "summary": "string - 2-3 sentence professional summary tailored to this role"
+              "summary": "string (2-3 sentence professional summary tailored to this role)",
+              "location": "string",
+              "profiles": []
             },
-            "skills": ["string - prioritized by relevance to JD, max 12"],
-            "experience": [
+            "work": [
               {
                 "company": "string",
                 "position": "string",
-                "startDate": "string",
-                "endDate": "string",
-                "highlights": ["string - 3-5 bullet points emphasizing JD-relevant achievements"]
+                "startDate": "string (e.g. Jan 2020)",
+                "endDate": "string (e.g. Present or Dec 2023)",
+                "highlights": "string (each bullet point on a new line, separated by \\n. 3-5 achievements emphasizing JD-relevant impact.)"
               }
             ],
             "education": [
               {
                 "institution": "string",
-                "degree": "string",
-                "field": "string",
-                "graduationDate": "string"
+                "studyType": "string (degree type, e.g. BSc, MBA)",
+                "area": "string (field of study, e.g. Computer Science)",
+                "startDate": "string",
+                "endDate": "string",
+                "score": "string (GPA or grade, if available)"
+              }
+            ],
+            "skills": [
+              {
+                "name": "string (skill name)",
+                "level": "string (proficiency level, or empty string)",
+                "keywords": "string (comma-separated related keywords, or empty)"
               }
             ],
             "projects": [
               {
                 "name": "string",
                 "description": "string",
-                "technologies": ["string"],
-                "highlights": ["string"]
+                "highlights": "string (each bullet on a new line separated by \\n)",
+                "url": "string (project URL, or empty)",
+                "startDate": "string",
+                "endDate": "string"
               }
             ],
             "volunteer": [
               {
                 "organization": "string",
-                "role": "string",
-                "description": "string"
+                "position": "string",
+                "startDate": "string",
+                "endDate": "string",
+                "highlights": "string"
               }
             ],
             "languages": [
               {
-                "language": "string",
-                "proficiency": "string"
+                "name": "string",
+                "fluency": "string (e.g. Native, Fluent, Intermediate)",
+                "highlights": "string (optional details, or empty)",
+                "startDate": "string (or empty)"
+              }
+            ],
+            "certifications": [
+              {
+                "name": "string",
+                "issuer": "string",
+                "startDate": "string",
+                "endDate": "string",
+                "url": "string",
+                "highlights": "string"
               }
             ]
           },
-          "coverLetter": "string - 3-4 paragraph professional cover letter tailored to the role and company"
+          "coverLetter": {
+            "senderName": "string (user's full name)",
+            "recipientName": "string (hiring manager or recipient name extracted from JD or 'Hiring Manager')",
+            "recipientTitle": "string (recipient's title if known, or empty)",
+            "company": "string (company name)",
+            "address": "string (company address if available, or empty)",
+            "email": "string (recipient email if available, or empty)",
+            "opening": "string (opening paragraph referencing the role and company)",
+            "body": "string (1-2 body paragraphs highlighting relevant achievements and skills, use \\n between paragraphs)",
+            "closing": "string (closing paragraph with call to action and thank you)",
+            "signature": "string (e.g. Best regards,)",
+            "jobPostingUrl": "string (or empty)"
+          }
         }
 
         CRITICAL RULES:
@@ -143,10 +208,12 @@ export class GeminiService {
         2. Do NOT fabricate experience, skills, or qualifications. Only reorganize and emphasize existing profile data.
         3. Map profile skills to JD keywords where applicable. Prioritize JD-relevant skills first.
         4. Tailor the professional summary to directly address the role's primary requirements.
-        5. Experience highlights should quantify achievements where possible (metrics, impact).
+        5. Experience highlights should quantify achievements where possible (metrics, impact). Use actual \\n characters to separate bullet points in the highlights string.
         6. Cover letter must reference specific company, role, and 2-3 relevant achievements.
-        7. Maintain chronological order in experience/education sections.
+        7. Maintain chronological order in work/education sections.
         8. If profile lacks a section, return an empty array [] - never null.
+        9. For string fields that are optional, return an empty string "".
+        10. Keep the cover letter opening separate from "Dear {recipientName}," — do NOT include the salutation in the opening field.
 
         USER PROFILE:
         ${JSON.stringify(profileData)}
