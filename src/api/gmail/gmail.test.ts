@@ -45,6 +45,11 @@ describe("Gmail API - Authorization", () => {
         const res = await request(app).get("/api/v1/gmail/status");
         expect(res.status).toBe(401);
     });
+
+    it("should reject unauthenticated /gmail/resync", async () => {
+        const res = await request(app).post("/api/v1/gmail/resync");
+        expect(res.status).toBe(401);
+    });
 });
 
 describe("Gmail API - Status (no connection)", () => {

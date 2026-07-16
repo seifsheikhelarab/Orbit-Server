@@ -48,3 +48,10 @@ export const getStatus = asyncHandler(
         success(res, "Gmail status retrieved", HttpStatus.OK, status, req.originalUrl);
     }
 );
+
+export const resync = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+        await GmailService.resync(req.user.id);
+        success(res, "Gmail re-sync queued", HttpStatus.OK, null, req.originalUrl);
+    }
+);

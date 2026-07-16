@@ -12,6 +12,7 @@ import {
 import apiRouter from "./api/index.js";
 import { apiReference } from "@scalar/express-api-reference";
 import { rateLimit } from "express-rate-limit";
+import { startGmailWorker, stopGmailWorker } from "./api/gmail/gmail.worker.js";
 
 /**
  * Default Express app
@@ -78,16 +79,24 @@ export async function startServer(): Promise<void> {
         await prisma.$queryRaw`SELECT 1`;
         logger.info("[Init] Database connected successfully");
 
-    
+        // Start Gmail sync worker (if Redis is configured)
+        if (process.env.UPSTASH_REDIS_URL) {
+            try {
+                startGmailWorker();
+                logger.info("[Init] Gmail sync worker started");
+            } catch (err) {
+                logger.error({ err }, "[Init] Failed to start Gmail worker — continuing without it");
+            }
+        }
 
         const server = app.listen(port, async () => {
             logger.info(`[Init] Server running on http://localhost:${port}`);
             logger.info(`[Init] Scalar docs on http://localhost:${port}/docs`);
-            // initJobs();
         });
 
         const shutdown = async (signal: string) => {
             logger.info(`${signal} received, shutting down gracefully...`);
+            await stopGmailWorker();
             server.close(async () => {
                 await prisma.$disconnect();
                 logger.info("Server closed");

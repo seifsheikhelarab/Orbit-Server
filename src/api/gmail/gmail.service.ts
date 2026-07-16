@@ -2,6 +2,7 @@ import { google } from "googleapis";
 import prisma from "../../utils/prisma.js";
 import { AppError, HttpStatus, ErrorCode } from "../../utils/response.js";
 import logger from "../../utils/logger.js";
+import { getGmailSyncQueue } from "./queue.js";
 import type { GmailConnection } from "../../generated/prisma/index.js";
 
 const GMAIL_SCOPES = [
@@ -70,6 +71,19 @@ export async function handleCallback(userId: string, code: string): Promise<Gmai
     });
 
     logger.info({ userId, connectionId: connection.id }, "Gmail connected");
+
+    // Enqueue initial sync
+    try {
+        const queue = getGmailSyncQueue();
+        await queue.add(`initial-${userId}`, { userId, fullSync: true }, {
+            jobId: `gmail-sync-${userId}`,
+            removeOnComplete: true
+        });
+    } catch (err) {
+        // Non-critical — user can re-sync manually
+        logger.error({ err, userId }, "Failed to enqueue initial sync");
+    }
+
     return connection;
 }
 
@@ -93,10 +107,12 @@ export async function getStatus(userId: string): Promise<{
     lastSyncAt: Date | null;
     isActive: boolean;
     historyId: string | null;
+    syncTotal: number;
+    syncProcessed: number;
 } | null> {
     const connection = await prisma.gmailConnection.findUnique({
         where: { userId },
-        select: { isActive: true, lastSyncAt: true, historyId: true }
+        select: { isActive: true, lastSyncAt: true, historyId: true, syncTotal: true, syncProcessed: true }
     });
 
     if (!connection) return null;
@@ -105,7 +121,9 @@ export async function getStatus(userId: string): Promise<{
         connected: true,
         lastSyncAt: connection.lastSyncAt,
         isActive: connection.isActive,
-        historyId: connection.historyId
+        historyId: connection.historyId,
+        syncTotal: connection.syncTotal,
+        syncProcessed: connection.syncProcessed
     };
 }
 
@@ -184,4 +202,31 @@ export async function getOAuthClientForApi(userId: string) {
     });
 
     return oauth2;
+}
+
+export async function resync(userId: string): Promise<void> {
+    const connection = await prisma.gmailConnection.findUnique({ where: { userId } });
+
+    if (!connection) {
+        throw new AppError("Gmail not connected", HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND");
+    }
+
+    if (!connection.isActive) {
+        throw new AppError("Gmail connection is inactive", HttpStatus.BAD_REQUEST, "GMAIL_INACTIVE");
+    }
+
+    // Reset historyId for full sync
+    await prisma.gmailConnection.update({
+        where: { userId },
+        data: { historyId: null, syncTotal: 0, syncProcessed: 0 }
+    });
+
+    // Enqueue full sync
+    const queue = getGmailSyncQueue();
+    await queue.add(`resync-${userId}`, { userId, fullSync: true }, {
+        jobId: `gmail-sync-${userId}`,
+        removeOnComplete: true
+    });
+
+    logger.info({ userId }, "Gmail re-sync queued");
 }

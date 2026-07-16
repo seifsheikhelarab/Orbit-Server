@@ -271,9 +271,11 @@ model GmailConnection {
   tokenExpiry  DateTime
   historyId    String?
   lastSyncAt   DateTime?
-  lastError    String?
-  isActive     Boolean   @default(true)
-  connectedAt  DateTime  @default(now())
+  lastError     String?
+  isActive      Boolean   @default(true)
+  connectedAt   DateTime  @default(now())
+  syncTotal     Int       @default(0)
+  syncProcessed Int       @default(0)
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("gmail_connection")
