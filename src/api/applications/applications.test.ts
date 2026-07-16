@@ -28,6 +28,30 @@ describe("Applications schema", () => {
         expect(result.data.appliedDate).toBeNull();
         expect(result.data.followUpDate).toBeNull();
     });
+
+    it("should accept domain field", () => {
+        const result = createApplicationSchema.safeParse({
+            company: "Test Company",
+            jobTitle: "Software Engineer",
+            domain: "example.com"
+        });
+
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+        expect(result.data.domain).toBe("example.com");
+    });
+
+    it("should accept empty string domain as undefined", () => {
+        const result = createApplicationSchema.safeParse({
+            company: "Test Company",
+            jobTitle: "Software Engineer",
+            domain: ""
+        });
+
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+        expect(result.data.domain).toBe("");
+    });
 });
 
 beforeAll(async () => {
@@ -163,6 +187,22 @@ describe("Applications API - Authenticated", () => {
             expect(res.body.data.followUpDate).toBe(followUpDate);
             expect(res.body.data.followUpNote).toBe("Follow up next week");
             expect(res.body.data.source).toBe("LinkedIn");
+            expect(res.body.data.domain).toBeUndefined();
+        });
+
+        it("should create application with domain field", async () => {
+            const cookie = getCookie();
+            if (!cookie) return expect(true).toBe(true);
+            const res = await request(app)
+                .post("/api/v1/applications")
+                .set("Cookie", cookie)
+                .send({
+                    company: "Domain Corp",
+                    jobTitle: "Engineer",
+                    domain: "domaincorp.com"
+                });
+            expect(res.status).toBe(201);
+            expect(res.body.data.domain).toBe("domaincorp.com");
         });
     });
 

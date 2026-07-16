@@ -23,7 +23,8 @@ export const createApplication = z.object({
     notes: z.string().optional().or(z.literal("")),
     followUpDate: nullableDate,
     followUpNote: z.string().optional().or(z.literal("")),
-    source: z.string().max(100).optional().or(z.literal(""))
+    source: z.string().max(100).optional().or(z.literal("")),
+    domain: z.string().max(200).optional().or(z.literal(""))
 });
 
 export const updateApplication = createApplication.partial();
