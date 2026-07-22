@@ -6,8 +6,7 @@ import { getGmailSyncQueue } from "./queue.js";
 import type { GmailConnection } from "../../generated/prisma/index.js";
 
 const GMAIL_SCOPES = [
-    "https://www.googleapis.com/auth/gmail.readonly",
-    "https://www.googleapis.com/auth/gmail.modify"
+    "https://www.googleapis.com/auth/gmail.readonly"
 ];
 
 const TOKEN_BUFFER_MS = 5 * 60 * 1000; // refresh if <5min remaining

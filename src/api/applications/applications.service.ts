@@ -117,12 +117,29 @@ export async function getApplications(params: GetApplicationsParams) {
             where,
             skip: (page - 1) * limit,
             take: limit,
-            orderBy
+            orderBy,
+            include: {
+                inboxEntries: {
+                    where: { matched: true },
+                    orderBy: { receivedAt: "desc" },
+                    take: 1,
+                    select: { receivedAt: true }
+                },
+                _count: {
+                    select: { pendingSuggestions: { where: { status: "PENDING" } } }
+                }
+            }
         });
 
         const total = await prisma.jobApplication.count({ where });
 
-        return { applications, total };
+        const result = applications.map(({ inboxEntries, _count, ...app }) => ({
+            ...app,
+            lastContactAt: inboxEntries[0]?.receivedAt ?? null,
+            pendingSuggestionCount: _count.pendingSuggestions
+        }));
+
+        return { applications: result, total };
     } catch (error: unknown) {
         if (error instanceof AppError) throw error;
         throw new AppError(
@@ -204,14 +221,23 @@ export async function getApplicationDetails(
 ) {
     try {
         const application = await prisma.jobApplication.findUnique({
-            where: { id: applicationId, userId }
+            where: { id: applicationId, userId },
+            include: {
+                inboxEntries: {
+                    where: { matched: true },
+                    orderBy: { receivedAt: "desc" },
+                    take: 1,
+                    select: { receivedAt: true }
+                }
+            }
         });
 
         if (!application) {
             throw new AppError("Application not found", HttpStatus.NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND);
         }
 
-        return application;
+        const { inboxEntries, ...rest } = application;
+        return { ...rest, lastContactAt: inboxEntries[0]?.receivedAt ?? null };
     } catch (error: unknown) {
         if (error instanceof AppError) throw error;
         throw new AppError(
