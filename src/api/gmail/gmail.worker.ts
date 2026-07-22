@@ -82,34 +82,6 @@ async function schedulePeriodicSync(): Promise<void> {
     logger.info("Periodic Gmail sync scheduled (every 5 minutes)");
 }
 
-// Handle the periodic sweep — check all active connections
-export async function handlePeriodicSync(): Promise<void> {
-    const connections = await prisma.gmailConnection.findMany({
-        where: { isActive: true },
-        select: { userId: true }
-    });
-
-    const { getGmailSyncQueue } = await import("./queue.js");
-    const queue = getGmailSyncQueue();
-
-    for (const conn of connections) {
-        // Skip if a sync is already in progress (BullMQ dedup via userId key)
-        await queue.add(
-            `incremental-${conn.userId}`,
-            { userId: conn.userId, fullSync: false },
-            {
-                jobId: `gmail-sync-${conn.userId}`,
-                removeOnComplete: true,
-                removeOnFail: 10
-            }
-        );
-    }
-
-    if (connections.length > 0) {
-        logger.info({ count: connections.length }, "Queued incremental syncs");
-    }
-}
-
 export async function stopGmailWorker(): Promise<void> {
     if (worker) {
         await worker.close();

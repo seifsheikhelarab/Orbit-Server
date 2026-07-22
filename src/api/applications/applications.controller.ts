@@ -7,7 +7,6 @@ import {
     getResumesForApplication
 } from "../resumes/resumes.service.js";
 import { error as sendError, success, paginated, created, AppError, HttpStatus, ErrorCode } from "../../utils/response.js";
-import { getPagination } from "../../utils/pages.js";
 import type { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
 import { getApplicationsQuerySchema } from "./applications.schemas.js";
 
@@ -21,13 +20,8 @@ export const getApplications = asyncHandler(
                   limit: 20
               };
 
-        const { page, limit } = getPagination(
-            {
-                page: String(parsedQuery.page),
-                limit: String(parsedQuery.limit)
-            },
-            20
-        );
+        const page = Number(parsedQuery.page);
+        const limit = Number(parsedQuery.limit);
 
         const result = await ApplicationsService.getApplications({
             userId: req.user.id,

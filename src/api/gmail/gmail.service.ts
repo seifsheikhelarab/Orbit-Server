@@ -12,7 +12,7 @@ const GMAIL_SCOPES = [
 
 const TOKEN_BUFFER_MS = 5 * 60 * 1000; // refresh if <5min remaining
 
-function getOAuth2Client() {
+export function getOAuth2Client() {
     const redirectUri = process.env.GMAIL_REDIRECT_URI || `${process.env.BETTER_AUTH_URL || "http://localhost:5726"}/api/v1/gmail/callback`;
     return new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
@@ -189,19 +189,6 @@ export async function ensureValidToken(userId: string): Promise<string> {
 
         throw new AppError("Gmail token refresh failed", HttpStatus.UNAUTHORIZED, "GMAIL_TOKEN_EXPIRED");
     }
-}
-
-export async function getOAuthClientForApi(userId: string) {
-    const token = await ensureValidToken(userId);
-    const connection = await prisma.gmailConnection.findUnique({ where: { userId } });
-
-    const oauth2 = getOAuth2Client();
-    oauth2.setCredentials({
-        access_token: token,
-        refresh_token: connection?.refreshToken
-    });
-
-    return oauth2;
 }
 
 export async function resync(userId: string): Promise<void> {

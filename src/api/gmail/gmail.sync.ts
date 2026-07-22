@@ -2,6 +2,7 @@ import { google, type gmail_v1 } from "googleapis";
 import prisma from "../../utils/prisma.js";
 import { extractAndMatch } from "./gmail.gemini.js";
 import logger from "../../utils/logger.js";
+import { getOAuth2Client } from "./gmail.service.js";
 import type { gmailIntent, applicationStatusType } from "../../generated/prisma/index.js";
 
 const INITIAL_SYNC_DAYS = 7;
@@ -429,7 +430,7 @@ export async function runGmailSync(userId: string, fullSync: boolean): Promise<v
     }
 
     // Get OAuth client (refreshes token if needed)
-    const oauth2 = getOAuth2ClientInternal();
+    const oauth2 = getOAuth2Client();
     oauth2.setCredentials({
         access_token: connection.accessToken,
         refresh_token: connection.refreshToken
@@ -515,28 +516,4 @@ export async function runGmailSync(userId: string, fullSync: boolean): Promise<v
     );
 }
 
-// ── Reset for re-sync ───────────────────────────────────────────────
 
-export async function resetForResync(userId: string): Promise<void> {
-    await prisma.gmailConnection.update({
-        where: { userId },
-        data: {
-            historyId: null,
-            syncTotal: 0,
-            syncProcessed: 0
-        }
-    });
-}
-
-// ── Helper: internal OAuth client (same as gmail.service.ts) ────────
-
-function getOAuth2ClientInternal() {
-    const redirectUri =
-        process.env.GMAIL_REDIRECT_URI ||
-        `${process.env.BETTER_AUTH_URL || "http://localhost:5726"}/api/v1/gmail/callback`;
-    return new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        redirectUri
-    );
-}

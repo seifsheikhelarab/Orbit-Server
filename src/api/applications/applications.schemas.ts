@@ -29,18 +29,6 @@ export const createApplication = z.object({
 
 export const updateApplication = createApplication.partial();
 
-export const clearReminder = z.object({});
-
-export const applicationStatusValues = [
-    "SAVED",
-    "APPLIED",
-    "PHONE_SCREEN",
-    "INTERVIEW",
-    "OFFER",
-    "CLOSED"
-] as const;
-export type ApplicationStatus = (typeof applicationStatusValues)[number];
-
 export const getApplicationsQuerySchema = z.object({
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().max(50).default(20),
@@ -63,5 +51,3 @@ export const getApplicationsQuerySchema = z.object({
         .optional(),
     order: z.enum(["asc", "desc"]).optional()
 });
-
-export type GetApplicationsQuery = z.infer<typeof getApplicationsQuerySchema>;

@@ -12,12 +12,10 @@ export enum HttpStatus {
     FORBIDDEN = 403,
     NOT_FOUND = 404,
     CONFLICT = 409,
-    IM_A_TEAPOT = 418,
     TOO_MANY_REQUESTS = 429,
 
     // Server errors
-    INTERNAL_SERVER_ERROR = 500,
-    NOT_IMPLEMENTED = 501
+    INTERNAL_SERVER_ERROR = 500
 }
 
 export enum ErrorCode {
@@ -25,25 +23,17 @@ export enum ErrorCode {
     INVALID_CREDENTIALS = "AUTH_OO1",
     USER_NOT_FOUND = "AUTH_OO2",
     USER_ALREADY_EXISTS = "AUTH_OO3",
-    INVALID_TOKEN = "AUTH_OO4",
-    EXPIRED_TOKEN = "AUTH_OO5",
 
     // Validation errors
     VALIDATION_ERROR = "VAL_OO1",
     INVALID_INPUT = "VAL_OO2",
-    MISSING_INPUT = "VAL_OO3",
 
     // Resource errors
     RESOURCE_NOT_FOUND = "RES_OO1",
     RESOURCE_ALREADY_EXISTS = "RES_OO2",
-    RESOURCE_CONFLICT = "RES_OO3",
-    RESOURCE_LIMIT_REACHED = "RES_OO4",
-    RESOURCE_NOT_ALLOWED = "RES_OO5",
 
     // Server errors
-    SERVER_ERROR = "SRV_OO1",
-    NOT_IMPLEMENTED = "SRV_OO2",
-    DATABASE_ERROR = "SRV_OO3"
+    SERVER_ERROR = "SRV_OO1"
 }
 
 export interface SuccessResponse<T> {
