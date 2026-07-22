@@ -88,6 +88,78 @@ describe("Gmail API - Disconnect", () => {
     });
 });
 
+describe("Gmail API - Inbox (no connection)", () => {
+    it("should return empty inbox", async () => {
+        const cookie = getCookie();
+        if (!cookie) return expect(true).toBe(true);
+        const res = await request(app)
+            .get("/api/v1/gmail/inbox")
+            .set("Cookie", cookie);
+        expect(res.status).toBe(200);
+        expect(res.body.data).toEqual([]);
+        expect(res.body.pagination.total).toBe(0);
+    });
+
+    it("should return 404 for nonexistent inbox entry", async () => {
+        const cookie = getCookie();
+        if (!cookie) return expect(true).toBe(true);
+        const res = await request(app)
+            .get("/api/v1/gmail/inbox/nonexistent-id")
+            .set("Cookie", cookie);
+        expect(res.status).toBe(404);
+    });
+
+    it("should reject unauthenticated /gmail/inbox", async () => {
+        const res = await request(app).get("/api/v1/gmail/inbox");
+        expect(res.status).toBe(401);
+    });
+
+    it("should reject link without applicationId", async () => {
+        const cookie = getCookie();
+        if (!cookie) return expect(true).toBe(true);
+        const res = await request(app)
+            .post("/api/v1/gmail/inbox/some-id/link")
+            .set("Cookie", cookie)
+            .send({});
+        expect(res.status).toBe(400);
+    });
+});
+
+describe("Gmail API - Suggestions (no data)", () => {
+    it("should return empty suggestions", async () => {
+        const cookie = getCookie();
+        if (!cookie) return expect(true).toBe(true);
+        const res = await request(app)
+            .get("/api/v1/gmail/suggestions")
+            .set("Cookie", cookie);
+        expect(res.status).toBe(200);
+        expect(res.body.data).toEqual([]);
+    });
+
+    it("should return 404 for nonexistent suggestion", async () => {
+        const cookie = getCookie();
+        if (!cookie) return expect(true).toBe(true);
+        const res = await request(app)
+            .get("/api/v1/gmail/suggestions/nonexistent-id")
+            .set("Cookie", cookie);
+        expect(res.status).toBe(404);
+    });
+
+    it("should reject unauthenticated /gmail/suggestions", async () => {
+        const res = await request(app).get("/api/v1/gmail/suggestions");
+        expect(res.status).toBe(401);
+    });
+
+    it("should reject accept on nonexistent suggestion", async () => {
+        const cookie = getCookie();
+        if (!cookie) return expect(true).toBe(true);
+        const res = await request(app)
+            .post("/api/v1/gmail/suggestions/nonexistent-id/accept")
+            .set("Cookie", cookie);
+        expect(res.status).toBe(404);
+    });
+});
+
 describe("Gmail API - Callback (public)", () => {
     it("should redirect with error when code is missing", async () => {
         const res = await request(app)
